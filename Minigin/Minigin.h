@@ -2,6 +2,8 @@
 #include <string>
 #include <functional>
 
+#include "TextComponent.h"
+
 namespace dae
 {
 	class Minigin
@@ -18,6 +20,9 @@ namespace dae
 		void Initialize();
 		void Cleanup();
 		void Run(const std::function<void()>& load);
+
+	private:
+		std::shared_ptr<TextComponent> fpsTextComponent;
 
 	};
 }
