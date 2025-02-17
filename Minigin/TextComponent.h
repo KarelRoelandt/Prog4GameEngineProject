@@ -11,7 +11,7 @@
 namespace dae
 {
     class TextComponent final : public BaseComponent
-	{
+    {
     public:
         TextComponent(const std::string& text, std::shared_ptr<Font> font);
         ~TextComponent() override = default;
@@ -25,8 +25,9 @@ namespace dae
         void Render() const override;
 
         void SetText(const std::string& text);
-        void SetPosition(float x, float y);
         Vector2 GetSize() const;
+
+        std::shared_ptr<Texture2D> GetTexture() const; // Added GetTexture method declaration
 
     private:
         bool m_needsUpdate;

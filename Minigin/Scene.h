@@ -5,11 +5,14 @@
 
 #include "SceneManager.h"
 
-namespace dae {
+namespace dae
+{
     class GameObject;
 
-    class Scene final {
+    class Scene final
+	{
         friend Scene& SceneManager::CreateScene(const std::string& name);
+
     public:
         explicit Scene(const std::string& name);
 

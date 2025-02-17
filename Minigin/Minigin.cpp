@@ -19,14 +19,16 @@
 
 SDL_Window* g_window{};
 
-struct State {
+struct State
+{
     // Add relevant state variables here
     // For example:
     double position;
     double velocity;
 
     // Interpolation function
-    State Interpolate(const State& other, double alpha) const {
+    State Interpolate(const State& other, double alpha) const
+	{
         State result;
         result.position = position * (1.0 - alpha) + other.position * alpha;
         result.velocity = velocity * (1.0 - alpha) + other.velocity * alpha;

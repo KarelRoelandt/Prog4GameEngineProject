@@ -1,4 +1,5 @@
 #include "GameObject.h"
+#include "TransformComponent.h"
 
 void dae::GameObject::Update(float deltaTime)
 {
@@ -16,11 +17,6 @@ void dae::GameObject::Render() const
     }
 }
 
-void dae::GameObject::SetPosition(float x, float y)
-{
-    m_transform.SetPosition(x, y, 0.0f);
-}
-
 void dae::GameObject::SetName(const std::string& name)
 {
     m_Name = name;
@@ -30,5 +26,3 @@ const std::string& dae::GameObject::GetName() const
 {
     return m_Name;
 }
-
-dae::GameObject::~GameObject() = default;

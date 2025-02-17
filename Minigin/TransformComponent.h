@@ -15,7 +15,7 @@ namespace dae
         TransformComponent& operator=(const TransformComponent&) = delete;
         TransformComponent& operator=(TransformComponent&&) noexcept = delete;
 
-        void Update(float deltaTime) override {}
+        void Update(float /*deltaTime*/) override {}
         void Render() const override {}
 
         void SetPosition(float x, float y)

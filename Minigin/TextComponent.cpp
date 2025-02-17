@@ -7,23 +7,23 @@ namespace dae
 {
     TextComponent::TextComponent(const std::string& text, std::shared_ptr<Font> font)
         : m_text(text), m_font(std::move(font)), m_needsUpdate(true)
-	{
+    {
     }
 
     void TextComponent::Update(float deltaTime)
-	{
+    {
         (void)deltaTime; // Mark deltaTime as intentionally unused
 
-        if (m_needsUpdate) 
+        if (m_needsUpdate)
         {
             const SDL_Color color = { 255, 255, 255 }; // White color
             const auto surf = TTF_RenderText_Blended(m_font->GetFont(), m_text.c_str(), color);
-            if (surf == nullptr) 
+            if (surf == nullptr)
             {
                 throw std::runtime_error(std::string("Render text failed: ") + SDL_GetError());
             }
             auto texture = SDL_CreateTextureFromSurface(Renderer::GetInstance().GetSDLRenderer(), surf);
-            if (texture == nullptr) 
+            if (texture == nullptr)
             {
                 throw std::runtime_error(std::string("Create text texture from surface failed: ") + SDL_GetError());
             }
@@ -34,28 +34,23 @@ namespace dae
         }
     }
 
-
     void TextComponent::Render() const
-	{
-        if (m_textTexture) 
-        {
-            Renderer::GetInstance().RenderTexture(*m_textTexture, m_position.x, m_position.y);
-        }
+    {
     }
 
     void TextComponent::SetText(const std::string& text)
-	{
+    {
         m_text = text;
         m_needsUpdate = true;
     }
 
-    void TextComponent::SetPosition(float x, float y)
-	{
-        m_position = { x, y };
+    Vector2 TextComponent::GetSize() const
+    {
+        return m_size;
     }
 
-    Vector2 TextComponent::GetSize() const
-	{
-        return m_size;
+    std::shared_ptr<Texture2D> TextComponent::GetTexture() const // Added GetTexture method definition
+    {
+        return m_textTexture;
     }
 }

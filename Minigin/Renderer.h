@@ -2,13 +2,15 @@
 #include <SDL.h>
 #include "Singleton.h"
 
-namespace dae {
+namespace dae
+{
     class Texture2D;
 
     /**
      * Simple RAII wrapper for the SDL renderer
      */
-    class Renderer final : public Singleton<Renderer> {
+    class Renderer final : public Singleton<Renderer>
+	{
         SDL_Renderer* m_renderer{};
         SDL_Window* m_window{};
         SDL_Color m_clearColor{};
