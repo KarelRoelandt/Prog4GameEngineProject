@@ -1,6 +1,6 @@
 #pragma once
-#include <vec2.hpp>
 
+#include <vec2.hpp>
 #include "BaseComponent.h"
 #include "CustomDefs.h"
 
@@ -9,30 +9,36 @@ namespace dae
     class RotationComponent final : public BaseComponent
     {
     public:
-        RotationComponent(GameObject* owner, float rotationSpeed, const glm::vec2& center, float radius);
+        // Constructor with default values for rotation point and radius
+        RotationComponent(GameObject* owner, float rotationSpeed, const glm::vec2& rotationPoint = glm::vec2(0.0f, 0.0f), float radius = 1.0f);
         ~RotationComponent() override = default;
 
+        // Deleted copy and move constructors/assignments
         RotationComponent(const RotationComponent&) = delete;
         RotationComponent(RotationComponent&&) = delete;
         RotationComponent& operator=(const RotationComponent&) = delete;
         RotationComponent& operator=(RotationComponent&&) = delete;
 
+        // Update method to be called every frame
         void Update(float deltaTime) override;
+
+        // Render method (empty for now)
         void Render() const override {}
 
-        void SetRotationSpeed(float speed) { m_RotationSpeed = speed; }
-        float GetRotationSpeed() const { return m_RotationSpeed; }
+        // Setter and Getter methods for rotation speed, rotation point, and radius
+        void SetRotationSpeed(float speed);
+        float GetRotationSpeed() const;
 
-        void SetCenter(const glm::vec2& center) { m_Center = center; }
-        glm::vec2 GetCenter() const { return m_Center; }
+        void SetRotationPoint(const glm::vec2& point);
+        const glm::vec2& GetRotationPoint() const; // Return by const reference for efficiency
 
-        void SetRadius(float radius) { m_Radius = radius; }
-        float GetRadius() const { return m_Radius; }
+        void SetRadius(float radius);
+        float GetRadius() const;
 
     private:
-        float m_RotationSpeed;
-        float m_CurrentRotation;
-        glm::vec2 m_Center;
-        float m_Radius;
+        float m_RotationSpeed; // Speed at which the object rotates
+        float m_CurrentRotation{ 0.0f }; // Current rotation angle
+        glm::vec2 m_RotationPoint; // Point around which the object rotates
+        float m_Radius; // Distance from the rotation point
     };
 }
