@@ -1,11 +1,11 @@
 #include "GameObject.h"
-#include "TransformComponent.h"
+//#include "TransformComponent.h"
 
 void dae::GameObject::Update(float deltaTime)
 {
     for (auto& componentPair : m_Components)
     {
-        componentPair.second.get()->Update(deltaTime);
+        componentPair.second->Update(deltaTime);
     }
 }
 

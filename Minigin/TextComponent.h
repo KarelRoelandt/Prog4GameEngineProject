@@ -5,7 +5,6 @@
 #include "Texture2D.h"
 #include <memory>
 #include <string>
-
 #include "CustomDefs.h"
 
 namespace dae
@@ -13,7 +12,7 @@ namespace dae
     class TextComponent final : public BaseComponent
     {
     public:
-        TextComponent(const std::string& text, std::shared_ptr<Font> font);
+        TextComponent(GameObject* owner, const std::string& text, std::shared_ptr<Font> font);
         ~TextComponent() override = default;
 
         TextComponent(const TextComponent&) = delete;
@@ -27,7 +26,7 @@ namespace dae
         void SetText(const std::string& text);
         Vector2 GetSize() const;
 
-        std::shared_ptr<Texture2D> GetTexture() const; // Added GetTexture method declaration
+        std::shared_ptr<Texture2D> GetTexture() const;
 
     private:
         bool m_needsUpdate;

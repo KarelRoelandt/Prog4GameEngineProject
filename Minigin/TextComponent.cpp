@@ -5,8 +5,8 @@
 
 namespace dae
 {
-    TextComponent::TextComponent(const std::string& text, std::shared_ptr<Font> font)
-        : m_text(text), m_font(std::move(font)), m_needsUpdate(true)
+    TextComponent::TextComponent(GameObject* owner, const std::string& text, std::shared_ptr<Font> font)
+        : BaseComponent(owner), m_text(text), m_font(std::move(font)), m_needsUpdate(true)
     {
     }
 
@@ -49,7 +49,7 @@ namespace dae
         return m_size;
     }
 
-    std::shared_ptr<Texture2D> TextComponent::GetTexture() const // Added GetTexture method definition
+    std::shared_ptr<Texture2D> TextComponent::GetTexture() const
     {
         return m_textTexture;
     }

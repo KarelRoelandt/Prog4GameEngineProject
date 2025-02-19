@@ -9,7 +9,7 @@ namespace dae
     class RenderComponent final : public BaseComponent
     {
     public:
-        RenderComponent() = default;
+        RenderComponent(GameObject* owner) : BaseComponent(owner) {}
         ~RenderComponent() override = default;
 
         RenderComponent(const RenderComponent&) = delete;
@@ -20,7 +20,6 @@ namespace dae
         void Update(float /*deltaTime*/) override {}
         void Render() const override
         {
-
             auto owner = GetOwner();
             Vector2 objectPosition{};
             if (owner->HasComponent<TransformComponent>())
@@ -35,7 +34,7 @@ namespace dae
                 const auto& texture = textureComponent->GetTexture();
                 if (texture)
                 {
-					Renderer::GetInstance().RenderTexture(*texture, objectPosition.x, objectPosition.y, textureComponent->GetSize().x, textureComponent->GetSize().y);
+                    Renderer::GetInstance().RenderTexture(*texture, objectPosition.x, objectPosition.y, textureComponent->GetSize().x, textureComponent->GetSize().y);
                 }
             }
 
@@ -51,4 +50,3 @@ namespace dae
         }
     };
 }
-

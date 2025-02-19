@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <chrono>
+#include <thread>
 #define WIN32_LEAN_AND_MEAN 
 #include <windows.h>
 #include <SDL.h>
@@ -14,7 +15,6 @@
 #include "Renderer.h"
 #include "ResourceManager.h"
 #include "GameObject.h"
-#include "TextComponent.h"
 #include "Scene.h" // Include the header file for dae::Scene
 
 SDL_Window* g_window{};
@@ -123,72 +123,35 @@ void dae::Minigin::Run(const std::function<void()>& load)
     auto& sceneManager = SceneManager::GetInstance();
     auto& input = InputManager::GetInstance();
 
-    const double dt = 0.01; // Fixed timestep
-    double currentTime = getCurrentTime();
-    double accumulator = 0.0;
+    const int targetFPS = 60;
+    const double targetFrameTime = 1.0 / targetFPS;
 
-    State previousState{};
-    State currentState{};
+    auto lastFrameTime = std::chrono::high_resolution_clock::now();
 
-    bool quit = false;
-    SDL_Event e;
+    bool doContinue = true;
+    while (doContinue)
+    {
+        // Calculate delta time
+        auto currentFrameTime = std::chrono::high_resolution_clock::now();
+        const std::chrono::duration<double> duration = currentFrameTime - lastFrameTime;
+        double deltaTime = duration.count();
+        lastFrameTime = currentFrameTime;
 
-    // Store a reference to the FPS TextComponent
-    auto fpsTextObject = sceneManager.GetScene("Demo").FindObjectByName("FPSText");
-    auto fpsTextComponentLocal = fpsTextObject->GetComponent<dae::TextComponent>();
-    // FPS calculation variables
-    int frameCount = 0;
-    float elapsedTime = 0.0f;
+        doContinue = input.ProcessInput();
 
-    while (!quit) {
-        double newTime = getCurrentTime();
-        double frameTime = newTime - currentTime;
-        if (frameTime > 0.25)
-        {
-            frameTime = 0.25; // Avoid spiral of death
-        }
-        currentTime = newTime;
+        // Update the scene using variable deltaTime
+        sceneManager.Update(static_cast<float>(deltaTime));
 
-        accumulator += frameTime;
-
-        while (SDL_PollEvent(&e) != 0) {
-            if (e.type == SDL_QUIT) {
-                quit = true;
-            }
-        }
-
-        input.ProcessInput();
-
-        while (accumulator >= dt) {
-            previousState = currentState;
-            // Integrate the current state here
-            // For example:
-            currentState.position += currentState.velocity * dt;
-            accumulator -= dt;
-        }
-
-        const double alpha = accumulator / dt;
-        State interpolatedState = currentState.Interpolate(previousState, alpha);
-
-        // FPS calculation
-        frameCount++;
-        elapsedTime += static_cast<float>(frameTime);
-        if (elapsedTime >= 0.1f) {
-            float fps = frameCount / elapsedTime;
-            std::string fpsString = std::to_string(fps);
-            size_t dotPos = fpsString.find('.');
-            if (dotPos != std::string::npos && dotPos + 2 < fpsString.size()) {
-                fpsString = fpsString.substr(0, dotPos + 2); // Keep one decimal place
-            }
-            fpsTextComponentLocal->SetText(fpsString + " FPS");
-            frameCount = 0;
-            elapsedTime = 0.0f;
-        }
-
-        // Update the scene manager
-        sceneManager.Update(static_cast<float>(dt));
-
-        // Render using the interpolated state
+        // Render the current state
         renderer.Render();
+
+        // Frame rate regulation
+        auto frameEndTime = std::chrono::high_resolution_clock::now();
+        const std::chrono::duration<double> frameDuration = frameEndTime - currentFrameTime;
+        double frameTime = frameDuration.count();
+        if (frameTime < targetFrameTime)
+        {
+            std::this_thread::sleep_for(std::chrono::duration<double>(targetFrameTime - frameTime));
+        }
     }
 }

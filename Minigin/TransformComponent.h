@@ -7,7 +7,7 @@ namespace dae
     class TransformComponent final : public BaseComponent
     {
     public:
-        TransformComponent() = default;
+        TransformComponent(GameObject* owner) : BaseComponent(owner) {}
         ~TransformComponent() override = default;
 
         TransformComponent(const TransformComponent&) = delete;

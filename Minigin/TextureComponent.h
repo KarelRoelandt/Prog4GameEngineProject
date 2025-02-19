@@ -3,7 +3,6 @@
 #include "BaseComponent.h"
 #include <memory>
 #include <string>
-
 #include "CustomDefs.h"
 
 namespace dae
@@ -13,7 +12,7 @@ namespace dae
     class TextureComponent final : public BaseComponent
     {
     public:
-        TextureComponent() = default;
+        TextureComponent(GameObject* owner) : BaseComponent(owner) {}
         ~TextureComponent() override = default;
 
         TextureComponent(const TextureComponent&) = delete;

@@ -22,7 +22,6 @@ namespace dae
 		void Run(const std::function<void()>& load);
 
 	private:
-		std::shared_ptr<TextComponent> fpsTextComponent;
 
 	};
 }

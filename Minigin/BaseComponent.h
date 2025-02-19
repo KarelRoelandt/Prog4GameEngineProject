@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-
 namespace dae
 {
     class GameObject;
@@ -11,7 +9,7 @@ namespace dae
     public:
         virtual ~BaseComponent() = default;
 
-        BaseComponent() = default;
+        BaseComponent(GameObject* owner) : m_Owner(owner) {}
         BaseComponent(const BaseComponent& other) = delete;
         BaseComponent(BaseComponent&& other) noexcept = delete;
         BaseComponent& operator=(const BaseComponent& other) = delete;
@@ -20,17 +18,12 @@ namespace dae
         virtual void Update(float deltaTime) = 0;
         virtual void Render() const = 0;
 
-        void SetOwner(GameObject* owner)
-        {
-            m_Owner = owner;
-        }
-
         GameObject* GetOwner() const
         {
             return m_Owner;
         }
 
     private:
-        GameObject* m_Owner = nullptr;
+        GameObject* m_Owner;
     };
 }
