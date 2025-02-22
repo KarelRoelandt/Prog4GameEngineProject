@@ -50,8 +50,13 @@ namespace dae
         void SetName(const std::string& name);
         const std::string& GetName() const;
 
+        // Add the declarations for GetParent and SetParent
+        GameObject* GetParent() const;
+        void SetParent(GameObject* parent);
+
     private:
         std::unordered_map<std::type_index, std::shared_ptr<BaseComponent>> m_Components;
         std::string m_Name;
+        GameObject* m_Parent = nullptr; // Declare m_Parent
     };
 }

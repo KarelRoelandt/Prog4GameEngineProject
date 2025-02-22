@@ -1,8 +1,6 @@
 #include "RotationComponent.h"
 #include "GameObject.h" // Include the GameObject header file
-
 #include <trigonometric.hpp>
-
 #include "TransformComponent.h"
 
 namespace dae
@@ -23,17 +21,33 @@ namespace dae
             m_CurrentRotation -= 360.0f;
         }
 
-        // Calculate the new position after applying the rotation
-        // (This can be used for updating the transform if needed)
-        glm::vec2 newPosition = m_RotationPoint + glm::vec2(
-            m_Radius * cos(glm::radians(m_CurrentRotation)),
-            m_Radius * sin(glm::radians(m_CurrentRotation))
-        );
-
-        // Set the new position or update other necessary components here
+        // Initialize newPosition to avoid potential uninitialized use
+        glm::vec2 newPosition(0.0f, 0.0f);
         auto owner = GetOwner();
         if (owner)
         {
+            auto parent = owner->GetParent();
+            if (parent)
+            {
+                auto parentPos = parent->GetComponent<TransformComponent>()->GetPosition();
+                newPosition = parentPos + glm::vec2(
+                    m_Radius * cos(glm::radians(m_CurrentRotation)),
+                    m_Radius * sin(glm::radians(m_CurrentRotation))
+                );
+            }
+            else
+            {
+                auto transform = owner->GetComponent<TransformComponent>();
+                if (transform)
+                {
+                    auto center = transform->GetPosition(); // Use object's own position
+                    newPosition = center + glm::vec2(
+                        m_Radius * cos(glm::radians(m_CurrentRotation)),
+                        m_Radius * sin(glm::radians(m_CurrentRotation))
+                    );
+                }
+            }
+
             auto transformComponent = owner->GetComponent<TransformComponent>();
             if (transformComponent)
             {
@@ -41,6 +55,7 @@ namespace dae
             }
         }
     }
+
 
     void RotationComponent::SetRotationSpeed(float speed)
     {

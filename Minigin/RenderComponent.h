@@ -21,7 +21,7 @@ namespace dae
         void Render() const override
         {
             auto owner = GetOwner();
-            Vector2 objectPosition{};
+            glm::vec2 objectPosition{};
             if (owner->HasComponent<TransformComponent>())
             {
                 auto transformComponent = owner->GetComponent<TransformComponent>();

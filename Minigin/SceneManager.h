@@ -19,6 +19,7 @@ namespace dae
         SceneManager& operator=(SceneManager&&) noexcept = delete;
 
         Scene& CreateScene(const std::string& name);
+        void DestroyScene(const std::string& name);
         Scene& GetScene(const std::string& name);
 
         void Update(float deltaTime);

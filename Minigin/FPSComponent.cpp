@@ -15,7 +15,7 @@ namespace dae
         m_ElapsedTime += deltaTime;
 
         // Debug output to verify values
-        std::cout << "DeltaTime: " << deltaTime << ", FrameCount: " << m_FrameCount << ", ElapsedTime: " << m_ElapsedTime << std::endl;
+        //std::cout << "DeltaTime: " << deltaTime << ", FrameCount: " << m_FrameCount << ", ElapsedTime: " << m_ElapsedTime << std::endl;
 
         if (m_ElapsedTime >= 0.1f) // Update FPS every second
         {
@@ -29,7 +29,7 @@ namespace dae
             m_TextComponent->SetText(fpsString + " FPS");
 
             // Debug output to verify FPS calculation
-            std::cout << "FPS: " << fpsString << std::endl;
+            //std::cout << "FPS: " << fpsString << std::endl;
 
             m_FrameCount = 0;
             m_ElapsedTime = 0.0f;

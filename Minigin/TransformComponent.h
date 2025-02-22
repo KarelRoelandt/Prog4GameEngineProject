@@ -1,13 +1,18 @@
 #pragma once
 #include "BaseComponent.h"
-#include "CustomDefs.h"
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/quaternion.hpp>
+#include <iostream> // For debugging
 
 namespace dae
 {
     class TransformComponent final : public BaseComponent
     {
     public:
-        TransformComponent(GameObject* owner) : BaseComponent(owner) {}
+        TransformComponent(GameObject* owner)
+            : BaseComponent(owner), m_LocalPosition(0.0f, 0.0f, 0.0f), m_LocalRotation(glm::quat()), m_LocalScale(1.0f, 1.0f, 1.0f), m_WorldTransform(1.0f), m_IsDirty(true) {
+        }
         ~TransformComponent() override = default;
 
         TransformComponent(const TransformComponent&) = delete;
@@ -15,42 +20,97 @@ namespace dae
         TransformComponent& operator=(const TransformComponent&) = delete;
         TransformComponent& operator=(TransformComponent&&) noexcept = delete;
 
-        void Update(float /*deltaTime*/) override {}
+        void Update(float /*deltaTime*/) override
+        {
+            if (m_IsDirty)
+            {
+                UpdateWorldTransform();
+                m_IsDirty = false;
+            }
+        }
+
         void Render() const override {}
 
+        void SetLocalPosition(const glm::vec3& position)
+        {
+            m_LocalPosition = position;
+            m_IsDirty = true;
+        }
+
+        const glm::vec3& GetLocalPosition() const
+        {
+            return m_LocalPosition;
+        }
+
+        void SetLocalRotation(const glm::quat& rotation)
+        {
+            m_LocalRotation = rotation;
+            m_IsDirty = true;
+        }
+
+        const glm::quat& GetLocalRotation() const
+        {
+            return m_LocalRotation;
+        }
+
+        void SetLocalScale(const glm::vec3& scale)
+        {
+            m_LocalScale = scale;
+            m_IsDirty = true;
+        }
+
+        const glm::vec3& GetLocalScale() const
+        {
+            return m_LocalScale;
+        }
+
+        const glm::mat4& GetWorldTransform() const
+        {
+            return m_WorldTransform;
+        }
+
+        // Add the SetPosition method
         void SetPosition(float x, float y)
         {
-            m_position = { x, y };
+            m_LocalPosition.x = x;
+            m_LocalPosition.y = y;
+            m_IsDirty = true;
+            //std::cout << "SetPosition called with x: " << x << ", y: " << y << std::endl; // Debugging
         }
 
-        Vector2 GetPosition() const
+        // Add the GetPosition method
+        glm::vec2 GetPosition() const
         {
-            return m_position;
-        }
-
-        void SetRotation(float angle)
-        {
-            m_rotation = angle;
-        }
-
-        float GetRotation() const
-        {
-            return m_rotation;
-        }
-
-        void SetScale(float x, float y)
-        {
-            m_scale = { x, y };
-        }
-
-        Vector2 GetScale() const
-        {
-            return m_scale;
+            return { m_LocalPosition.x, m_LocalPosition.y };
         }
 
     private:
-        Vector2 m_position{ 0, 0 };
-        float m_rotation{ 0 };
-        Vector2 m_scale{ 1, 1 };
+        void UpdateWorldTransform()
+        {
+            m_WorldTransform = glm::translate(glm::mat4(1.0f), m_LocalPosition) *
+                glm::mat4_cast(m_LocalRotation) *
+                glm::scale(glm::mat4(1.0f), m_LocalScale);
+
+            auto owner = GetOwner();
+            if (owner)
+            {
+                auto parent = owner->GetParent();
+                if (parent)
+                {
+                    auto parentTransform = parent->GetComponent<TransformComponent>();
+                    if (parentTransform)
+                    {
+                        m_WorldTransform = parentTransform->GetWorldTransform() * m_WorldTransform;
+                    }
+                }
+            }
+            //std::cout << "UpdateWorldTransform called. Local Position: (" << m_LocalPosition.x << ", " << m_LocalPosition.y << ", " << m_LocalPosition.z << ")" << std::endl; // Debugging
+        }
+
+        glm::vec3 m_LocalPosition;
+        glm::quat m_LocalRotation;
+        glm::vec3 m_LocalScale;
+        glm::mat4 m_WorldTransform;
+        bool m_IsDirty;
     };
 }

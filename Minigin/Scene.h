@@ -1,34 +1,32 @@
 #pragma once
+#include <string>
 #include <vector>
 #include <memory>
-#include <string>
-
-#include "SceneManager.h"
 
 namespace dae
 {
     class GameObject;
 
     class Scene final
-	{
-        friend Scene& SceneManager::CreateScene(const std::string& name);
-
+    {
     public:
         explicit Scene(const std::string& name);
+        ~Scene();
+
+        Scene(const Scene&) = delete;
+        Scene(Scene&&) = delete;
+        Scene& operator=(const Scene&) = delete;
+        Scene& operator=(Scene&&) = delete;
 
         void Add(std::shared_ptr<GameObject> object);
         void Remove(std::shared_ptr<GameObject> object);
         void RemoveAll();
+
         void Update(float deltaTime);
         void Render() const;
-        std::shared_ptr<GameObject> FindObjectByName(const std::string& name) const;
-        const std::string& GetName() const; // Add this line
 
-        ~Scene();
-        Scene(const Scene& other) = delete;
-        Scene(Scene&& other) = delete;
-        Scene& operator=(const Scene& other) = delete;
-        Scene& operator=(Scene&& other) = delete;
+        std::shared_ptr<GameObject> FindObjectByName(const std::string& name) const;
+        const std::string& GetName() const { return m_name; }
 
     private:
         std::string m_name;

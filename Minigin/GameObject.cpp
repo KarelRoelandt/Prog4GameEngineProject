@@ -26,3 +26,15 @@ const std::string& dae::GameObject::GetName() const
 {
     return m_Name;
 }
+
+// Add the definition of GetParent
+dae::GameObject* dae::GameObject::GetParent() const
+{
+    return m_Parent;
+}
+
+// Add the definition of SetParent
+void dae::GameObject::SetParent(GameObject* parent)
+{
+    m_Parent = parent;
+}
