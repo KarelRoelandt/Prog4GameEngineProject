@@ -1,12 +1,13 @@
+#include "GameObject.h"
 #include "RotationComponent.h"
-#include "GameObject.h" // Include the GameObject header file
-#include <trigonometric.hpp>
 #include "TransformComponent.h"
+
+#include <trigonometric.hpp>
 
 namespace dae
 {
     RotationComponent::RotationComponent(GameObject* owner, float rotationSpeed, const glm::vec2& rotationPoint, float radius)
-        : BaseComponent(owner), m_RotationSpeed(rotationSpeed), m_RotationPoint(rotationPoint), m_Radius(radius)
+        : BaseComponent(owner), m_RotationSpeed(rotationSpeed), m_RotationPoint(rotationPoint), m_Radius(radius), m_InitialPositionSet(false)
     {
     }
 
@@ -21,41 +22,45 @@ namespace dae
             m_CurrentRotation -= 360.0f;
         }
 
-        // Initialize newPosition to avoid potential uninitialized use
-        glm::vec2 newPosition(0.0f, 0.0f);
         auto owner = GetOwner();
         if (owner)
         {
-            auto parent = owner->GetParent();
-            if (parent)
-            {
-                auto parentPos = parent->GetComponent<TransformComponent>()->GetPosition();
-                newPosition = parentPos + glm::vec2(
-                    m_Radius * cos(glm::radians(m_CurrentRotation)),
-                    m_Radius * sin(glm::radians(m_CurrentRotation))
-                );
-            }
-            else
-            {
-                auto transform = owner->GetComponent<TransformComponent>();
-                if (transform)
-                {
-                    auto center = transform->GetPosition(); // Use object's own position
-                    newPosition = center + glm::vec2(
-                        m_Radius * cos(glm::radians(m_CurrentRotation)),
-                        m_Radius * sin(glm::radians(m_CurrentRotation))
-                    );
-                }
-            }
-
             auto transformComponent = owner->GetComponent<TransformComponent>();
             if (transformComponent)
             {
+                glm::vec2 center;
+
+                // Check if the object has a parent
+                auto parent = owner->GetParent();
+                if (parent)
+                {
+                    // Use parent's position as the center
+                    auto parentTransform = parent->GetComponent<TransformComponent>();
+                    if (parentTransform)
+                    {
+                        center = parentTransform->GetPosition();
+                    }
+                }
+                else
+                {
+                    // Store the initial position if not already set
+                    if (!m_InitialPositionSet)
+                    {
+                        m_InitialPosition = transformComponent->GetPosition();
+                        m_InitialPositionSet = true;
+                    }
+                    center = m_InitialPosition;
+                }
+
+                glm::vec2 newPosition = center + glm::vec2(
+                    m_Radius * cos(glm::radians(m_CurrentRotation)),
+                    m_Radius * sin(glm::radians(m_CurrentRotation))
+                );
+
                 transformComponent->SetPosition(newPosition.x, newPosition.y);
             }
         }
     }
-
 
     void RotationComponent::SetRotationSpeed(float speed)
     {

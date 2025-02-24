@@ -40,5 +40,7 @@ namespace dae
         float m_CurrentRotation{ 0.0f }; // Current rotation angle
         glm::vec2 m_RotationPoint; // Point around which the object rotates
         float m_Radius; // Distance from the rotation point
+        bool m_InitialPositionSet; // Flag to check if the initial position is set
+        glm::vec2 m_InitialPosition; // Initial position of the object
     };
 }

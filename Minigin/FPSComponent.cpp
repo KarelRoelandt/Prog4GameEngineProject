@@ -17,7 +17,7 @@ namespace dae
         // Debug output to verify values
         //std::cout << "DeltaTime: " << deltaTime << ", FrameCount: " << m_FrameCount << ", ElapsedTime: " << m_ElapsedTime << std::endl;
 
-        if (m_ElapsedTime >= 0.1f) // Update FPS every second
+        if (m_ElapsedTime >= 0.2f) // Update FPS every second
         {
             float fps = m_FrameCount / m_ElapsedTime;
             std::string fpsString = std::to_string(fps);

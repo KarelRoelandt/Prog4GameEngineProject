@@ -123,15 +123,15 @@ void dae::Minigin::Run(const std::function<void()>& load)
     auto& sceneManager = SceneManager::GetInstance();
     auto& input = InputManager::GetInstance();
 
-    const int targetFPS = 60;
-    const double targetFrameTime = 1.0 / targetFPS;
+    const int targetFPS = 500;
+    const double targetFrameTime = 1.0 / targetFPS; // Target frame time (seconds per frame)
 
     auto lastFrameTime = std::chrono::high_resolution_clock::now();
 
     bool doContinue = true;
     while (doContinue)
     {
-        // Calculate delta time
+        // Calculate delta time for this frame
         auto currentFrameTime = std::chrono::high_resolution_clock::now();
         const std::chrono::duration<double> duration = currentFrameTime - lastFrameTime;
         double deltaTime = duration.count();
@@ -149,9 +149,7 @@ void dae::Minigin::Run(const std::function<void()>& load)
         auto frameEndTime = std::chrono::high_resolution_clock::now();
         const std::chrono::duration<double> frameDuration = frameEndTime - currentFrameTime;
         double frameTime = frameDuration.count();
-        if (frameTime < targetFrameTime)
-        {
-            std::this_thread::sleep_for(std::chrono::duration<double>(targetFrameTime - frameTime));
-        }
+    	std::this_thread::sleep_for(std::chrono::duration<double>(targetFrameTime - frameTime));
+
     }
 }
