@@ -7,7 +7,7 @@
 namespace dae
 {
     RotationComponent::RotationComponent(GameObject* owner, float rotationSpeed, const glm::vec2& rotationPoint, float radius)
-        : BaseComponent(owner), m_RotationSpeed(rotationSpeed), m_RotationPoint(rotationPoint), m_Radius(radius), m_InitialPositionSet(false)
+        : BaseComponent(owner), m_RotationSpeed(rotationSpeed), m_RotationPoint(rotationPoint), m_Radius(radius)
     {
     }
 
@@ -20,6 +20,10 @@ namespace dae
         if (m_CurrentRotation >= 360.0f)
         {
             m_CurrentRotation -= 360.0f;
+        }
+        if (m_CurrentRotation <= -360.0f)
+        {
+            m_CurrentRotation += 360.0f;
         }
 
         auto owner = GetOwner();
@@ -40,16 +44,6 @@ namespace dae
                     {
                         center = parentTransform->GetPosition();
                     }
-                }
-                else
-                {
-                    // Store the initial position if not already set
-                    if (!m_InitialPositionSet)
-                    {
-                        m_InitialPosition = transformComponent->GetPosition();
-                        m_InitialPositionSet = true;
-                    }
-                    center = m_InitialPosition;
                 }
 
                 glm::vec2 newPosition = center + glm::vec2(

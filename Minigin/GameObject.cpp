@@ -33,8 +33,23 @@ dae::GameObject* dae::GameObject::GetParent() const
     return m_Parent;
 }
 
-// Add the definition of SetParent
 void dae::GameObject::SetParent(GameObject* parent)
 {
+
+	/// positie van aanpassen + checks toevoegen
+
+    if (m_Parent)
+    {
+        // Remove this object from the current parent's children list
+        auto& siblings = m_Parent->m_Children;
+        siblings.erase(std::remove(siblings.begin(), siblings.end(), this), siblings.end());
+    }
+
     m_Parent = parent;
+
+    if (m_Parent)
+    {
+        // Add this object to the new parent's children list
+        m_Parent->m_Children.push_back(this);
+    }
 }

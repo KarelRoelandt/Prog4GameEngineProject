@@ -57,6 +57,7 @@ namespace dae
     private:
         std::unordered_map<std::type_index, std::shared_ptr<BaseComponent>> m_Components;
         std::string m_Name;
-        GameObject* m_Parent = nullptr; // Declare m_Parent
+        GameObject* m_Parent = nullptr;
+        std::vector<GameObject*> m_Children;
     };
 }
