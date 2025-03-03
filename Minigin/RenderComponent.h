@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseComponent.h"
+#include "ImGuiComponent.h"
 #include "TextureComponent.h"
 #include "TransformComponent.h"
 #include "Renderer.h"
@@ -46,6 +47,11 @@ namespace dae
                 {
                     Renderer::GetInstance().RenderTexture(*texture, objectPosition.x, objectPosition.y);
                 }
+            }
+
+            if (owner->HasComponent<ImGuiComponent>())
+            {
+                owner->Render();
             }
         }
     };

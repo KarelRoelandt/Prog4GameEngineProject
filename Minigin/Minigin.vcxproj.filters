@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Imgui">
+      <UniqueIdentifier>{5c47d911-2f92-4f20-b2dd-5b6539562416}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Singleton.h">
@@ -72,6 +75,42 @@
     <ClInclude Include="RotationComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\3rdParty\imgui\imconfig.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\imgui\imgui.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\imgui\imgui_internal.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\imgui\imstb_rectpack.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\imgui\imstb_textedit.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\imgui\imstb_truetype.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\imgui\backends\imgui_impl_opengl3.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\imgui\backends\imgui_impl_opengl3_loader.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\imgui\backends\imgui_impl_sdl2.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\imgui\imgui_plot.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ThrashTheCache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ResourceManager.cpp">
@@ -117,6 +156,36 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RotationComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdParty\imgui\imgui.cpp">
+      <Filter>Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdParty\imgui\imgui_demo.cpp">
+      <Filter>Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdParty\imgui\imgui_draw.cpp">
+      <Filter>Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdParty\imgui\imgui_tables.cpp">
+      <Filter>Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdParty\imgui\imgui_widgets.cpp">
+      <Filter>Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdParty\imgui\backends\imgui_impl_opengl3.cpp">
+      <Filter>Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdParty\imgui\backends\imgui_impl_sdl2.cpp">
+      <Filter>Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdParty\imgui\imgui_plot.cpp">
+      <Filter>Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ThrashTheCache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
