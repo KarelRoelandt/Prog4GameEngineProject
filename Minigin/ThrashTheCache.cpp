@@ -199,28 +199,26 @@ void ThrashTheCache::RenderImGui() const
 
         if (!xValues1.empty() && !yValues1.empty() && !xValues2.empty() && !yValues2.empty())
         {
-	        // Print combined text above the graph
-	        ImGui::Text("Combined:");
+            // Print combined text above the graph
+            ImGui::Text("Combined:");
 
-	        ImGui::PlotConfig conf;
-	        conf.values.xs = xValues1.data();
-	        conf.values.ys_list = new const float* [2] { yValues1.data(), yValues2.data() };
-	        conf.values.count = static_cast<int>(yValues1.size());
-	        conf.values.ys_count = 2;
-	        conf.scale.min = 0;
-	        conf.scale.max = std::max(*std::max_element(yValues1.begin(), yValues1.end()), *std::max_element(yValues2.begin(), yValues2.end()));
-	        conf.tooltip.show = true;
-	        conf.grid_x.show = true;
-	        conf.grid_y.show = true;
-	        conf.frame_size = ImVec2(400, 200);
-	        conf.line_thickness = 2.f;
-	        ImGui::Plot("##", conf);
+            ImGui::PlotConfig conf;
+            conf.values.xs = xValues1.data();
+            conf.values.ys_list = new const float* [2] { yValues1.data(), yValues2.data() };
+            conf.values.count = static_cast<int>(yValues1.size());
+            conf.values.ys_count = 2;
+            conf.scale.min = 0;
+            conf.scale.max = std::max(*std::max_element(yValues1.begin(), yValues1.end()), *std::max_element(yValues2.begin(), yValues2.end()));
+            conf.tooltip.show = true;
+            conf.grid_x.show = true;
+            conf.grid_y.show = true;
+            conf.frame_size = ImVec2(400, 200);
+            conf.line_thickness = 2.f;
+            ImGui::Plot("##", conf);
 
-	        // Clean up dynamically allocated memory
-	        delete[] conf.values.ys_list;
-		}
-
-        
+            // Clean up dynamically allocated memory
+            delete[] conf.values.ys_list;
+        }
         ImGui::End();
     }
 }
