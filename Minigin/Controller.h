@@ -1,31 +1,23 @@
 #pragma once
-#include<Xinput.h>
+#include <windows.h>
+#include <Xinput.h>
 
-#include "imgui_internal.h"
-
-class Command;
-
-class Controller
+namespace dae
 {
-public:
-	void handleControllerInput();
+    class Controller
+    {
+    public:
+        Controller(int controllerIndex);
+        void Update();
+        bool IsButtonPressed(WORD button) const;
+        bool IsButtonReleased(WORD button) const;
+        int GetIndex() const { return m_ControllerIndex; }
 
-	// lmethods to bind  commands
-
-private:
-	Command* buttonX_;
-	Command* buttonY_;
-};
-
-inline void Controller::handleControllerInput()
-{
-	if (IsPressed(BUTTON_X)) return buttonX_;
-
-
+    private:
+        int m_ControllerIndex;
+        XINPUT_STATE m_CurrentState{};
+        XINPUT_STATE m_PreviousState{};
+        DWORD m_ButtonsPressedThisFrame{};
+        DWORD m_ButtonsReleasedThisFrame{};
+    };
 }
-
-class Controller
-{
-};
-
-
