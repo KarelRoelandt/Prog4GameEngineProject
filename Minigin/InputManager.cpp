@@ -98,6 +98,10 @@ namespace dae
                     HandleControllerEvent(button, InputState::Released);
                 }
             }
+
+            // Debug output for triggers
+            //std::cout << "Controller " << controller.GetIndex() << ": RT value = " << static_cast<int>(controller.GetRightTriggerValue()) << "\n";
+            //std::cout << "Controller " << controller.GetIndex() << ": LT value = " << static_cast<int>(controller.GetLeftTriggerValue()) << "\n";
         }
 
         return true;

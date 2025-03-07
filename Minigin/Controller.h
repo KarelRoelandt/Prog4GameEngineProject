@@ -12,6 +12,8 @@ namespace dae
         bool IsButtonPressed(WORD button) const;
         bool IsButtonReleased(WORD button) const;
         int GetIndex() const { return m_ControllerIndex; }
+        BYTE GetRightTriggerValue() const;
+        BYTE GetLeftTriggerValue() const;
 
     private:
         int m_ControllerIndex;

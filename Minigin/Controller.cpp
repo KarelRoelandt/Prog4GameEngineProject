@@ -42,4 +42,14 @@ namespace dae
     {
         return (m_ButtonsReleasedThisFrame & button) != 0;
     }
+
+    BYTE Controller::GetRightTriggerValue() const
+    {
+        return m_CurrentState.Gamepad.bRightTrigger;
+    }
+
+    BYTE Controller::GetLeftTriggerValue() const
+    {
+        return m_CurrentState.Gamepad.bLeftTrigger;
+    }
 }
