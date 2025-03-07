@@ -25,17 +25,27 @@ namespace dae
 
     void InputManager::HandleKeyEvent(int key, InputState state)
     {
-        if (keyCommands.find(key) != keyCommands.end() && keyCommands[key].find(state) != keyCommands[key].end())
+        auto keyIt = keyCommands.find(key);
+        if (keyIt != keyCommands.end())
         {
-            keyCommands[key][state]->Execute();
+            auto stateIt = keyIt->second.find(state);
+            if (stateIt != keyIt->second.end())
+            {
+                stateIt->second->Execute();
+            }
         }
     }
 
     void InputManager::HandleControllerEvent(int button, InputState state)
     {
-        if (controllerCommands.find(button) != controllerCommands.end() && controllerCommands[button].find(state) != controllerCommands[button].end())
+        auto buttonIt = controllerCommands.find(button);
+        if (buttonIt != controllerCommands.end())
         {
-            controllerCommands[button][state]->Execute();
+            auto stateIt = buttonIt->second.find(state);
+            if (stateIt != buttonIt->second.end())
+            {
+                stateIt->second->Execute();
+            }
         }
     }
 
@@ -60,6 +70,25 @@ namespace dae
 
             // Event for ImGui
             ImGui_ImplSDL2_ProcessEvent(&e);
+        }
+
+        // Update keyboard state
+        m_Keyboard.Update();
+
+        // Check key states and execute commands
+        const std::vector<SDL_Keycode> keys = { SDLK_w, SDLK_a, SDLK_s, SDLK_d, SDLK_z, SDLK_q };
+        for (const auto& key : keys)
+        {
+            if (m_Keyboard.IsKeyPressed(key))
+            {
+                std::cout << "Key " << SDL_GetKeyName(key) << " pressed.\n";
+                HandleKeyEvent(key, InputState::Pressed);
+            }
+            if (m_Keyboard.IsKeyReleased(key))
+            {
+                std::cout << "Key " << SDL_GetKeyName(key) << " released.\n";
+                HandleKeyEvent(key, InputState::Released);
+            }
         }
 
         // Update controller states

@@ -2,6 +2,7 @@
 #include "Singleton.h"
 #include "Command.h"
 #include "Controller.h"
+#include "Keyboard.h"
 #include <SDL.h>
 #include <vector>
 #include <unordered_map>
@@ -27,6 +28,7 @@ namespace dae
     private:
         static const int MAX_CONTROLLERS = 4;
         std::vector<Controller> m_Controllers;
+        Keyboard m_Keyboard;
 
         std::unordered_map<int, std::unordered_map<InputState, std::shared_ptr<Command>>> keyCommands;
         std::unordered_map<int, std::unordered_map<InputState, std::shared_ptr<Command>>> controllerCommands;
