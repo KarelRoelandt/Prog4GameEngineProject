@@ -43,6 +43,11 @@ namespace dae
         return (m_ButtonsReleasedThisFrame & button) != 0;
     }
 
+    bool Controller::IsButtonDown(WORD button) const
+    {
+        return (m_CurrentState.Gamepad.wButtons & button) != 0;
+    }
+
     BYTE Controller::GetRightTriggerValue() const
     {
         return m_CurrentState.Gamepad.bRightTrigger;

@@ -41,4 +41,10 @@ namespace dae
         }
         return false;
     }
+
+    bool Keyboard::IsKeyDown(SDL_Keycode key) const
+    {
+        auto it = m_CurrentState.find(key);
+        return it != m_CurrentState.end() && it->second;
+    }
 }

@@ -89,6 +89,11 @@ namespace dae
                 std::cout << "Key " << SDL_GetKeyName(key) << " released.\n";
                 HandleKeyEvent(key, InputState::Released);
             }
+            if (m_Keyboard.IsKeyDown(key))
+            {
+                std::cout << "Key " << SDL_GetKeyName(key) << " down.\n";
+                HandleKeyEvent(key, InputState::Down);
+            }
         }
 
         // Update controller states
@@ -125,6 +130,11 @@ namespace dae
                 {
                     std::cout << "Controller " << controller.GetIndex() << ": " << name << " button released.\n";
                     HandleControllerEvent(button, InputState::Released);
+                }
+                if (controller.IsButtonDown(button))
+                {
+                    std::cout << "Controller " << controller.GetIndex() << ": " << name << " button down.\n";
+                    HandleControllerEvent(button, InputState::Down);
                 }
             }
 

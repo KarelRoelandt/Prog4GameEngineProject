@@ -11,6 +11,7 @@ namespace dae
         void Update();
         bool IsButtonPressed(WORD button) const;
         bool IsButtonReleased(WORD button) const;
+        bool IsButtonDown(WORD button) const;
         int GetIndex() const { return m_ControllerIndex; }
         BYTE GetRightTriggerValue() const;
         BYTE GetLeftTriggerValue() const;
