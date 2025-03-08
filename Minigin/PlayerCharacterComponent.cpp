@@ -1,0 +1,113 @@
+// PlayerCharacterComponent.cpp
+#include "PlayerCharacterComponent.h"
+#include "GameObject.h"
+#include "TransformComponent.h"
+#include "InputManager.h"
+
+namespace dae
+{
+    PlayerCharacterComponent::PlayerCharacterComponent(GameObject* owner, float speed)
+        : BaseComponent(owner)
+        , m_Speed(speed)
+        , m_MovingLeft(false)
+        , m_MovingRight(false)
+        , m_MovingUp(false)
+        , m_MovingDown(false)
+    {
+        // Get the transform component as a raw pointer
+        auto transformPtr = GetOwner()->GetComponent<TransformComponent>();
+        m_pTransform = transformPtr.get();  // Use .get() to convert from shared_ptr to raw pointer
+    }
+
+    void PlayerCharacterComponent::Update(float deltaTime)
+    {
+        if (glm::length(m_Direction) > 0.1f)
+        {
+            // Normalize direction vector if it's not zero
+            glm::vec2 normalizedDir = glm::normalize(m_Direction);
+
+            // Update position using the transform component
+            if (m_pTransform)
+            {
+                glm::vec2 position = m_pTransform->GetPosition();
+                position.x += normalizedDir.x * m_Speed * deltaTime;
+                position.y += normalizedDir.y * m_Speed * deltaTime;
+                m_pTransform->SetPosition(position.x, position.y);
+            }
+        }
+    }
+
+    void PlayerCharacterComponent::Render() const
+    {
+        // Empty implementation or debug rendering if needed
+    }
+
+    void PlayerCharacterComponent::Move(float x, float y)
+    {
+        if (x < 0) m_MovingLeft = true;
+        else if (x > 0) m_MovingRight = true;
+
+        if (y < 0) m_MovingUp = true;
+        else if (y > 0) m_MovingDown = true;
+
+        UpdateDirection();
+    }
+
+    void PlayerCharacterComponent::StopMove(float x, float y)
+    {
+        if (x < 0) m_MovingLeft = false;
+        else if (x > 0) m_MovingRight = false;
+
+        if (y < 0) m_MovingUp = false;
+        else if (y > 0) m_MovingDown = false;
+
+        UpdateDirection();
+    }
+
+    void PlayerCharacterComponent::UpdateDirection()
+    {
+        m_Direction = { 0.0f, 0.0f };
+
+        if (m_MovingLeft) m_Direction.x -= 1.0f;
+        if (m_MovingRight) m_Direction.x += 1.0f;
+        if (m_MovingUp) m_Direction.y -= 1.0f;
+        if (m_MovingDown) m_Direction.y += 1.0f;
+    }
+
+    void PlayerCharacterComponent::BindInputs(bool isKeyboard, int /*controllerIdx*/)
+    {
+        InputManager& inputManager = InputManager::GetInstance();
+        std::shared_ptr<PlayerCharacterComponent> sharedThis = std::shared_ptr<PlayerCharacterComponent>(this, [](PlayerCharacterComponent*) {});
+
+        if (isKeyboard)
+        {
+            // Keyboard bindings
+            // Pressing keys (movement)
+            inputManager.BindCommand(SDLK_w, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 0.0f, -1.0f));
+            inputManager.BindCommand(SDLK_a, InputState::Down, std::make_shared<MoveCommand>(sharedThis, -1.0f, 0.0f));
+            inputManager.BindCommand(SDLK_s, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 0.0f, 1.0f));
+            inputManager.BindCommand(SDLK_d, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 1.0f, 0.0f));
+
+            // Releasing keys (stop movement)
+            inputManager.BindCommand(SDLK_w, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 0.0f, -1.0f));
+            inputManager.BindCommand(SDLK_a, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, -1.0f, 0.0f));
+            inputManager.BindCommand(SDLK_s, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 0.0f, 1.0f));
+            inputManager.BindCommand(SDLK_d, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 1.0f, 0.0f));
+        }
+        else
+        {
+            // Controller bindings
+            // Pressing d-pad (movement)
+            inputManager.BindControllerCommand(XINPUT_GAMEPAD_DPAD_UP, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 0.0f, -1.0f));
+            inputManager.BindControllerCommand(XINPUT_GAMEPAD_DPAD_LEFT, InputState::Down, std::make_shared<MoveCommand>(sharedThis, -1.0f, 0.0f));
+            inputManager.BindControllerCommand(XINPUT_GAMEPAD_DPAD_DOWN, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 0.0f, 1.0f));
+            inputManager.BindControllerCommand(XINPUT_GAMEPAD_DPAD_RIGHT, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 1.0f, 0.0f));
+
+            // Releasing d-pad (stop movement)
+            inputManager.BindControllerCommand(XINPUT_GAMEPAD_DPAD_UP, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 0.0f, -1.0f));
+            inputManager.BindControllerCommand(XINPUT_GAMEPAD_DPAD_LEFT, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, -1.0f, 0.0f));
+            inputManager.BindControllerCommand(XINPUT_GAMEPAD_DPAD_DOWN, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 0.0f, 1.0f));
+            inputManager.BindControllerCommand(XINPUT_GAMEPAD_DPAD_RIGHT, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 1.0f, 0.0f));
+        }
+    }
+}
