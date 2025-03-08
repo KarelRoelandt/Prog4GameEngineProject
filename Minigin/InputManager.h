@@ -20,20 +20,15 @@ namespace dae
     class InputManager final : public Singleton<InputManager>
     {
     public:
-        InputManager(); // Constructor declaration
+        InputManager();
+        ~InputManager();
+
         bool ProcessInput();
         void BindCommand(int key, InputState state, std::shared_ptr<Command> command);
         void BindControllerCommand(int button, InputState state, std::shared_ptr<Command> command);
 
     private:
-        static const int MAX_CONTROLLERS = 4;
-        std::vector<Controller> m_Controllers;
-        Keyboard m_Keyboard;
-
-        std::unordered_map<int, std::unordered_map<InputState, std::shared_ptr<Command>>> keyCommands;
-        std::unordered_map<int, std::unordered_map<InputState, std::shared_ptr<Command>>> controllerCommands;
-
-        void HandleKeyEvent(int key, InputState state);
-        void HandleControllerEvent(int button, InputState state);
+        class Impl;
+        std::unique_ptr<Impl> pImpl;
     };
 }
