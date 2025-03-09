@@ -1,4 +1,3 @@
-// InputManager.cpp
 #include "InputManager.h"
 #include <XInput.h> // Include XInput here
 #include "imgui.h"
@@ -70,44 +69,45 @@ namespace dae
             {
                 controller.Update();
 
-                // Check button states and execute commands
-                const std::vector<std::pair<WORD, const char*>> buttons = {
-                    {static_cast<WORD>(XINPUT_GAMEPAD_A), "A"},
-                    {static_cast<WORD>(XINPUT_GAMEPAD_B), "B"},
-                    {static_cast<WORD>(XINPUT_GAMEPAD_X), "X"},
-                    {static_cast<WORD>(XINPUT_GAMEPAD_Y), "Y"},
-                    {static_cast<WORD>(XINPUT_GAMEPAD_DPAD_UP), "D-Pad Up"},
-                    {static_cast<WORD>(XINPUT_GAMEPAD_DPAD_DOWN), "D-Pad Down"},
-                    {static_cast<WORD>(XINPUT_GAMEPAD_DPAD_LEFT), "D-Pad Left"},
-                    {static_cast<WORD>(XINPUT_GAMEPAD_DPAD_RIGHT), "D-Pad Right"},
-                    {static_cast<WORD>(XINPUT_GAMEPAD_LEFT_SHOULDER), "Left Shoulder"},
-                    {static_cast<WORD>(XINPUT_GAMEPAD_RIGHT_SHOULDER), "Right Shoulder"},
-                    {static_cast<WORD>(XINPUT_GAMEPAD_LEFT_THUMB), "Left Thumb"},
-                    {static_cast<WORD>(XINPUT_GAMEPAD_RIGHT_THUMB), "Right Thumb"},
-                    {static_cast<WORD>(XINPUT_GAMEPAD_START), "Start"},
-                    {static_cast<WORD>(XINPUT_GAMEPAD_BACK), "Back"}
+                // Define an array of all GamepadButton values
+                const GamepadButton buttonsToCheck[] = {
+                    GamepadButton::DPadUp,
+                    GamepadButton::DPadDown,
+                    GamepadButton::DPadLeft,
+                    GamepadButton::DPadRight,
+                    GamepadButton::ButtonA,
+                    GamepadButton::ButtonB,
+                    GamepadButton::ButtonX,
+                    GamepadButton::ButtonY,
+                    GamepadButton::LeftShoulder,
+                    GamepadButton::RightShoulder,
+                    GamepadButton::LeftThumb,
+                    GamepadButton::RightThumb,
+                    GamepadButton::Start,
+                    GamepadButton::Back
                 };
 
-                for (const auto& [button, name] : buttons)
+                // Check each button state
+                for (const auto& button : buttonsToCheck)
                 {
                     if (controller.IsButtonPressed(button))
                     {
-                        std::cout << "Controller " << controller.GetIndex() << ": " << name << " button pressed.\n";
-                        HandleControllerEvent(button, InputState::Pressed);
+                        std::cout << "Controller " << controller.GetIndex() << ": Button pressed.\n";
+                        HandleGamepadButtonEvent(button, InputState::Pressed);
                     }
                     if (controller.IsButtonReleased(button))
                     {
-                        std::cout << "Controller " << controller.GetIndex() << ": " << name << " button released.\n";
-                        HandleControllerEvent(button, InputState::Released);
+                        std::cout << "Controller " << controller.GetIndex() << ": Button released.\n";
+                        HandleGamepadButtonEvent(button, InputState::Released);
                     }
                     if (controller.IsButtonDown(button))
                     {
-                        std::cout << "Controller " << controller.GetIndex() << ": " << name << " button down.\n";
-                        HandleControllerEvent(button, InputState::Down);
+                        std::cout << "Controller " << controller.GetIndex() << ": Button down.\n";
+                        HandleGamepadButtonEvent(button, InputState::Down);
                     }
                 }
 
-                // Debug output for triggers
+                // Debug output for triggers can remain as is
                 //std::cout << "Controller " << controller.GetIndex() << ": RT value = " << static_cast<int>(controller.GetRightTriggerValue()) << "\n";
                 //std::cout << "Controller " << controller.GetIndex() << ": LT value = " << static_cast<int>(controller.GetLeftTriggerValue()) << "\n";
             }
@@ -120,9 +120,11 @@ namespace dae
             keyCommands[key][state] = std::move(command);
         }
 
-        void BindControllerCommand(int button, InputState state, std::shared_ptr<Command> command)
+        void BindGamepadButtonCommand(GamepadButton button, InputState state, std::shared_ptr<Command> command)
         {
-            controllerCommands[button][state] = std::move(command);
+            // Use a unique key combining button and state
+            int key = static_cast<int>(button) * 10 + static_cast<int>(state);
+            gamepadCommands[key] = std::move(command);
         }
 
     private:
@@ -131,7 +133,7 @@ namespace dae
         Keyboard m_Keyboard;
 
         std::unordered_map<int, std::unordered_map<InputState, std::shared_ptr<Command>>> keyCommands;
-        std::unordered_map<int, std::unordered_map<InputState, std::shared_ptr<Command>>> controllerCommands;
+        std::unordered_map<int, std::shared_ptr<Command>> gamepadCommands;
 
         void HandleKeyEvent(int key, InputState state)
         {
@@ -146,16 +148,14 @@ namespace dae
             }
         }
 
-        void HandleControllerEvent(int button, InputState state)
+        void HandleGamepadButtonEvent(GamepadButton button, InputState state)
         {
-            auto buttonIt = controllerCommands.find(button);
-            if (buttonIt != controllerCommands.end())
+            // Create the key using the same formula as in BindGamepadButtonCommand
+            int key = static_cast<int>(button) * 10 + static_cast<int>(state);
+            auto commandIt = gamepadCommands.find(key);
+            if (commandIt != gamepadCommands.end())
             {
-                auto stateIt = buttonIt->second.find(state);
-                if (stateIt != buttonIt->second.end())
-                {
-                    stateIt->second->Execute();
-                }
+                commandIt->second->Execute();
             }
         }
     };
@@ -177,8 +177,9 @@ namespace dae
         pImpl->BindCommand(key, state, std::move(command));
     }
 
-    void InputManager::BindControllerCommand(int button, InputState state, std::shared_ptr<Command> command)
+    void InputManager::BindControllerCommand(GamepadButton button, InputState state, std::shared_ptr<Command> command)
     {
-        pImpl->BindControllerCommand(button, state, std::move(command));
+        // Using the PIMPL pattern to delegate to the implementation
+        pImpl->BindGamepadButtonCommand(button, state, std::move(command));
     }
 }

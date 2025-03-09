@@ -3,6 +3,7 @@
 #include "GameObject.h"
 #include "TransformComponent.h"
 #include "InputManager.h"
+#include "Controller.h" // Include Controller.h to get access to the GamepadButton enum
 
 namespace dae
 {
@@ -98,16 +99,16 @@ namespace dae
         {
             // Controller bindings
             // Pressing d-pad (movement)
-            inputManager.BindControllerCommand(XINPUT_GAMEPAD_DPAD_UP, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 0.0f, -1.0f));
-            inputManager.BindControllerCommand(XINPUT_GAMEPAD_DPAD_LEFT, InputState::Down, std::make_shared<MoveCommand>(sharedThis, -1.0f, 0.0f));
-            inputManager.BindControllerCommand(XINPUT_GAMEPAD_DPAD_DOWN, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 0.0f, 1.0f));
-            inputManager.BindControllerCommand(XINPUT_GAMEPAD_DPAD_RIGHT, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 1.0f, 0.0f));
+            inputManager.BindControllerCommand(GamepadButton::DPadUp, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 0.0f, -1.0f));
+            inputManager.BindControllerCommand(GamepadButton::DPadLeft, InputState::Down, std::make_shared<MoveCommand>(sharedThis, -1.0f, 0.0f));
+            inputManager.BindControllerCommand(GamepadButton::DPadDown, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 0.0f, 1.0f));
+            inputManager.BindControllerCommand(GamepadButton::DPadRight, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 1.0f, 0.0f));
 
             // Releasing d-pad (stop movement)
-            inputManager.BindControllerCommand(XINPUT_GAMEPAD_DPAD_UP, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 0.0f, -1.0f));
-            inputManager.BindControllerCommand(XINPUT_GAMEPAD_DPAD_LEFT, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, -1.0f, 0.0f));
-            inputManager.BindControllerCommand(XINPUT_GAMEPAD_DPAD_DOWN, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 0.0f, 1.0f));
-            inputManager.BindControllerCommand(XINPUT_GAMEPAD_DPAD_RIGHT, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 1.0f, 0.0f));
+            inputManager.BindControllerCommand(GamepadButton::DPadUp, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 0.0f, -1.0f));
+            inputManager.BindControllerCommand(GamepadButton::DPadLeft, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, -1.0f, 0.0f));
+            inputManager.BindControllerCommand(GamepadButton::DPadDown, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 0.0f, 1.0f));
+            inputManager.BindControllerCommand(GamepadButton::DPadRight, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 1.0f, 0.0f));
         }
     }
 }

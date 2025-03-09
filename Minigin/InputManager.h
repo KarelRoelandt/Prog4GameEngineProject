@@ -7,6 +7,7 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include "Controller.h" // For GamepadButton enum
 
 namespace dae
 {
@@ -25,7 +26,8 @@ namespace dae
 
         bool ProcessInput();
         void BindCommand(int key, InputState state, std::shared_ptr<Command> command);
-        void BindControllerCommand(int button, InputState state, std::shared_ptr<Command> command);
+        //void BindControllerCommand(int button, InputState state, std::shared_ptr<Command> command);
+        void BindControllerCommand(GamepadButton button, InputState state, std::shared_ptr<Command> command);
 
     private:
         class Impl;
