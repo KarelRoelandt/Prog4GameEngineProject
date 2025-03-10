@@ -26,6 +26,37 @@ namespace dae
         Back
     };
 
+    // Enhanced enum for stick directions to support diagonal movements
+    enum class StickDirection
+    {
+        None,
+        Left,
+        Right,
+        Up,
+        Down,
+        UpLeft,
+        UpRight,
+        DownLeft,
+        DownRight
+    };
+
+    // Enum for stick types
+    enum class StickType
+    {
+        LeftStick,
+        RightStick
+    };
+
+    // Stick state struct to store full stick information
+    struct StickState
+    {
+        float x = 0.0f;
+        float y = 0.0f;
+        float magnitude = 0.0f;
+        float angle = 0.0f;
+        StickDirection direction = StickDirection::None;
+    };
+
     class Controller
     {
     public:
@@ -41,8 +72,17 @@ namespace dae
         bool IsButtonReleased(GamepadButton button) const;
         bool IsButtonDown(GamepadButton button) const;
         int GetIndex() const { return m_ControllerIndex; }
+
+        // Trigger methods
         BYTE GetRightTriggerValue() const;
         BYTE GetLeftTriggerValue() const;
+
+        // New analog stick methods
+        float GetLeftStickX() const;
+        float GetLeftStickY() const;
+        float GetRightStickX() const;
+        float GetRightStickY() const;
+
     private:
         class ControllerImpl;
         ControllerImpl* m_pImpl;

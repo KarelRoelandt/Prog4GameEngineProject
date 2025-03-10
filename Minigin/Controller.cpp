@@ -87,6 +87,27 @@ namespace dae
             return m_CurrentState.Gamepad.bLeftTrigger;
         }
 
+        // New analog stick methods in the implementation
+        float GetLeftStickX() const
+        {
+            return m_CurrentState.Gamepad.sThumbLX / 32768.0f;
+        }
+
+        float GetLeftStickY() const
+        {
+            return m_CurrentState.Gamepad.sThumbLY / 32768.0f;
+        }
+
+        float GetRightStickX() const
+        {
+            return m_CurrentState.Gamepad.sThumbRX / 32768.0f;
+        }
+
+        float GetRightStickY() const
+        {
+            return m_CurrentState.Gamepad.sThumbRY / 32768.0f;
+        }
+
         int m_ControllerIndex;
         XINPUT_STATE m_CurrentState{};
         XINPUT_STATE m_PreviousState{};
@@ -152,5 +173,26 @@ namespace dae
     BYTE Controller::GetLeftTriggerValue() const
     {
         return m_pImpl->GetLeftTriggerValue();
+    }
+
+    // New wrapper methods that delegate to the implementation
+    float Controller::GetLeftStickX() const
+    {
+        return m_pImpl->GetLeftStickX();
+    }
+
+    float Controller::GetLeftStickY() const
+    {
+        return m_pImpl->GetLeftStickY();
+    }
+
+    float Controller::GetRightStickX() const
+    {
+        return m_pImpl->GetRightStickX();
+    }
+
+    float Controller::GetRightStickY() const
+    {
+        return m_pImpl->GetRightStickY();
     }
 }
