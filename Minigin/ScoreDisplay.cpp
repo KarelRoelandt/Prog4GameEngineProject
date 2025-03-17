@@ -3,7 +3,7 @@
 
 namespace dae
 {
-    ScoreDisplay::ScoreDisplay(GameObject* owner, std::shared_ptr<TextComponent> textComponent)
+    ScoreDisplay::ScoreDisplay(GameObject* owner, GameObject* /*gameObject*/, std::shared_ptr<TextComponent> textComponent)
         : BaseComponent(owner), m_textComponent(textComponent)
     {
     }

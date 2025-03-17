@@ -7,7 +7,7 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
-#include "Controller.h" // For GamepadButton enum
+
 namespace dae
 {
     enum class InputState

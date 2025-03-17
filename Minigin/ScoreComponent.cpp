@@ -2,7 +2,7 @@
 #include "ScoreComponent.h"
 namespace dae
 {
-    ScoreComponent::ScoreComponent(GameObject* owner, int initialScore)
+    ScoreComponent::ScoreComponent(GameObject* owner, GameObject* /*gameObject*/, int initialScore)
         : BaseComponent(owner), m_score(initialScore)
     {
     }

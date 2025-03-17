@@ -37,7 +37,6 @@ namespace dae
                 {
                     HandleKeyEvent(e.key.keysym.sym, InputState::Released);
                 }
-                // etc...
 
                 // Event for ImGui
                 ImGui_ImplSDL2_ProcessEvent(&e);
@@ -52,17 +51,14 @@ namespace dae
             {
                 if (m_Keyboard.IsKeyPressed(key))
                 {
-                    std::cout << "Key " << SDL_GetKeyName(key) << " pressed.\n";
                     HandleKeyEvent(key, InputState::Pressed);
                 }
                 if (m_Keyboard.IsKeyReleased(key))
                 {
-                    std::cout << "Key " << SDL_GetKeyName(key) << " released.\n";
                     HandleKeyEvent(key, InputState::Released);
                 }
                 if (m_Keyboard.IsKeyDown(key))
                 {
-                    //std::cout << "Key " << SDL_GetKeyName(key) << " down.\n";
                     HandleKeyEvent(key, InputState::Down);
                 }
             }
@@ -306,6 +302,7 @@ namespace dae
                 auto stateIt = keyIt->second.find(state);
                 if (stateIt != keyIt->second.end())
                 {
+                    std::cout << "Executing command for key: " << key << " with state: " << static_cast<int>(state) << "\n";
                     stateIt->second->Execute();
                 }
             }

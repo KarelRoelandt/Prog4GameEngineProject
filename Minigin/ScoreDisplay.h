@@ -9,7 +9,7 @@ namespace dae
     class ScoreDisplay final : public BaseComponent, public Observer
     {
     public:
-        ScoreDisplay(GameObject* owner, std::shared_ptr<TextComponent> textComponent);
+        ScoreDisplay(GameObject* owner, GameObject* /*gameObject*/, std::shared_ptr<TextComponent> textComponent);
         virtual ~ScoreDisplay() = default;
 
         void OnNotify(const GameObject* entity, int value) override;

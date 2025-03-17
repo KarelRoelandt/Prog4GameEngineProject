@@ -3,7 +3,7 @@
 
 namespace dae
 {
-    HealthComponent::HealthComponent(GameObject* owner, GameObject* /*gameObject*/, int maxHealth)
+    HealthComponent::HealthComponent(GameObject* owner, GameObject* /*gameObject*/, int maxHealth = 3)
         : BaseComponent(owner), m_maxHealth(maxHealth), m_health(maxHealth)
     {
     }

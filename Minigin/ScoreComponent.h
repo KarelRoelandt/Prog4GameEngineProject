@@ -9,7 +9,7 @@ namespace dae
     class ScoreComponent final : public BaseComponent, public Subject
     {
     public:
-        ScoreComponent(GameObject* owner, int initialScore = 0);
+        ScoreComponent(GameObject* owner, GameObject* /*gameObject*/, int initialScore = 0);
         ~ScoreComponent() override = default;
 
         void AddScore(int amount);
