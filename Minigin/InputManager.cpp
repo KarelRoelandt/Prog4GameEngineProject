@@ -31,11 +31,18 @@ namespace dae
                 }
                 if (e.type == SDL_KEYDOWN)
                 {
-                    HandleKeyEvent(e.key.keysym.sym, InputState::Pressed);
+                    int key = e.key.keysym.sym;
+                    if (!keyProcessed[key])
+                    {
+                        HandleKeyEvent(key, InputState::Pressed);
+                        keyProcessed[key] = true;
+                    }
                 }
                 if (e.type == SDL_KEYUP)
                 {
-                    HandleKeyEvent(e.key.keysym.sym, InputState::Released);
+                    int key = e.key.keysym.sym;
+                    HandleKeyEvent(key, InputState::Released);
+                    keyProcessed[key] = false;
                 }
 
                 // Event for ImGui
@@ -51,11 +58,16 @@ namespace dae
             {
                 if (m_Keyboard.IsKeyPressed(key))
                 {
-                    HandleKeyEvent(key, InputState::Pressed);
+                    if (!keyProcessed[key])
+                    {
+                        HandleKeyEvent(key, InputState::Pressed);
+                        keyProcessed[key] = true;
+                    }
                 }
                 if (m_Keyboard.IsKeyReleased(key))
                 {
                     HandleKeyEvent(key, InputState::Released);
+                    keyProcessed[key] = false;
                 }
                 if (m_Keyboard.IsKeyDown(key))
                 {
@@ -293,6 +305,9 @@ namespace dae
         std::unordered_map<int, std::unordered_map<InputState, std::shared_ptr<Command>>> keyCommands;
         std::unordered_map<int, std::shared_ptr<Command>> gamepadCommands;
         std::unordered_map<int, std::shared_ptr<Command>> stickCommands;
+
+        // Declare keyProcessed to keep track of key states
+        std::unordered_map<int, bool> keyProcessed;
 
         void HandleKeyEvent(int key, InputState state)
         {
