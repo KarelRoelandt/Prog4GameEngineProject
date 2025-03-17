@@ -1,9 +1,9 @@
-// HealthComponent.cpp
 #include "HealthComponent.h"
+#include <algorithm> // For std::max and std::min
 
 namespace dae
 {
-    HealthComponent::HealthComponent(GameObject* owner, GameObject* /*gameObject*/, int maxHealth = 3)
+    HealthComponent::HealthComponent(GameObject* owner, GameObject* /*gameObject*/, int maxHealth)
         : BaseComponent(owner), m_maxHealth(maxHealth), m_health(maxHealth)
     {
     }
@@ -20,7 +20,6 @@ namespace dae
         NotifyObservers(GetOwner(), m_health);
     }
 
-    // Implementation of abstract methods
     void HealthComponent::Update(float /*deltaTime*/)
     {
         // Health component doesn't need any per-frame updates

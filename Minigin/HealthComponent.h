@@ -1,4 +1,3 @@
-// HealthComponent.h
 #pragma once
 #include "BaseComponent.h"
 #include "Observer.h"
@@ -9,7 +8,7 @@ namespace dae
     class HealthComponent final : public BaseComponent, public Subject
     {
     public:
-        HealthComponent(GameObject* owner, GameObject* /*gameObject*/, int maxHealth);
+        HealthComponent(GameObject* owner, GameObject* /*gameObject*/, int maxHealth = 3);
         ~HealthComponent() override = default;
 
         void TakeDamage(int amount);

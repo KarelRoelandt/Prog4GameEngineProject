@@ -16,8 +16,21 @@
 #include "ResourceManager.h"
 #include "GameObject.h"
 #include "Scene.h" // Include the header file for dae::Scene
+#include <steam_api.h>
+#include "Achievements.h"
+#include "Observer.h"
+#include "AchievementObserver.h"
 
 SDL_Window* g_window{};
+
+Achievement_t g_Achievements[] = {
+    { 0, "ACH_WIN_ONE_GAME", "Win One Game", "Win your first game", false, 0 },
+    { 1, "ACH_WIN_100_GAMES", "Win 100 Games", "Win 100 games", false, 0 },
+    // Add more achievements as needed
+};
+
+CSteamAchievements* g_SteamAchievements = nullptr;
+
 
 struct State
 {
@@ -119,6 +132,14 @@ void dae::Minigin::Run(const std::function<void()>& load)
 {
     load();
 
+
+    g_SteamAchievements = new CSteamAchievements(g_Achievements, sizeof(g_Achievements) / sizeof(Achievement_t));
+    AchievementObserver* achievementObserver = new AchievementObserver(g_SteamAchievements);
+
+    Subject subject;
+    subject.AddObserver(achievementObserver);
+
+
     auto& renderer = Renderer::GetInstance();
     auto& sceneManager = SceneManager::GetInstance();
     auto& input = InputManager::GetInstance();
@@ -155,5 +176,12 @@ void dae::Minigin::Run(const std::function<void()>& load)
         {
             std::this_thread::sleep_for(std::chrono::duration<double>(targetFrameTime - frameTime));
         }
+
+        SteamAPI_RunCallbacks();
     }
+
+    SteamAPI_Shutdown();
+
+    delete g_SteamAchievements;
+    delete achievementObserver;
 }
