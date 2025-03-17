@@ -47,7 +47,7 @@ namespace dae
             m_Keyboard.Update();
 
             // Check key states and execute commands
-            const std::vector<SDL_Keycode> keys = { SDLK_w, SDLK_a, SDLK_s, SDLK_d, SDLK_z, SDLK_q };
+            const std::vector<SDL_Keycode> keys = { SDLK_w, SDLK_a, SDLK_s, SDLK_d, SDLK_c, SDLK_z, SDLK_x };
             for (const auto& key : keys)
             {
                 if (m_Keyboard.IsKeyPressed(key))
@@ -105,7 +105,7 @@ namespace dae
                     }
                     if (controller.IsButtonDown(button))
                     {
-                        //std::cout << "Controller " << controller.GetIndex() << ": Button down.\n";
+                        std::cout << "Controller " << controller.GetIndex() << ": Button down.\n";
                         HandleGamepadButtonEvent(button, InputState::Down);
                     }
                 }

@@ -4,6 +4,8 @@
 #include "TransformComponent.h"
 #include "InputManager.h"
 #include "Controller.h" // Include Controller.h to get access to the GamepadButton enum
+#include "HealthComponent.h"
+#include "ScoreComponent.h"
 
 namespace dae
 {
@@ -18,6 +20,26 @@ namespace dae
         // Get the transform component as a raw pointer
         auto transformPtr = GetOwner()->GetComponent<TransformComponent>();
         m_pTransform = transformPtr.get();  // Use .get() to convert from shared_ptr to raw pointer
+    }
+
+    void PlayerCharacterComponent::DoDamage(int amount)
+    {
+        // Find the HealthComponent in the game object
+        auto healthComponent = GetOwner()->GetComponent<HealthComponent>();
+        if (healthComponent)
+        {
+            healthComponent->TakeDamage(amount);
+        }
+    }
+
+    void PlayerCharacterComponent::AddScore(int points)
+    {
+        // Find the ScoreComponent in the game object
+        auto scoreComponent = GetOwner()->GetComponent<ScoreComponent>();
+        if (scoreComponent)
+        {
+            scoreComponent->AddScore(points);
+        }
     }
 
     void PlayerCharacterComponent::Update(float deltaTime)
@@ -94,6 +116,13 @@ namespace dae
             inputManager.BindCommand(SDLK_a, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, -1.0f, 0.0f));
             inputManager.BindCommand(SDLK_s, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 0.0f, 1.0f));
             inputManager.BindCommand(SDLK_d, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 1.0f, 0.0f));
+
+            // Add the C key binding for damage
+            inputManager.BindCommand(SDLK_c, InputState::Pressed, std::make_shared<DamageCommand>(sharedThis, 1));
+
+            // Add score key bindings
+            inputManager.BindCommand(SDLK_z, InputState::Pressed, std::make_shared<ScoreCommand>(sharedThis, 10));
+            inputManager.BindCommand(SDLK_x, InputState::Pressed, std::make_shared<ScoreCommand>(sharedThis, 100));
         }
         else
         {
@@ -109,6 +138,11 @@ namespace dae
             inputManager.BindControllerCommand(GamepadButton::DPadLeft, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, -1.0f, 0.0f));
             inputManager.BindControllerCommand(GamepadButton::DPadDown, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 0.0f, 1.0f));
             inputManager.BindControllerCommand(GamepadButton::DPadRight, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 1.0f, 0.0f));
+
+            // Add controller button binding for damage and score
+            inputManager.BindControllerCommand(GamepadButton::ButtonX, InputState::Pressed, std::make_shared<DamageCommand>(sharedThis, 1));
+            inputManager.BindControllerCommand(GamepadButton::ButtonA, InputState::Pressed, std::make_shared<ScoreCommand>(sharedThis, 10));
+            inputManager.BindControllerCommand(GamepadButton::ButtonB, InputState::Pressed, std::make_shared<ScoreCommand>(sharedThis, 100));
         }
     }
 }

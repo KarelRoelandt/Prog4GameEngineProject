@@ -1,9 +1,12 @@
 // PlayerCharacterComponent.h
 #pragma once
+
 #include "BaseComponent.h"
 #include <glm.hpp>
 #include <memory>
 #include "Command.h"
+class Event;  // Forward declaration of Event
+class Observer;  // Forward declaration of Observer
 
 namespace dae
 {
@@ -26,12 +29,18 @@ namespace dae
         // New method for binding inputs
         void BindInputs(bool isKeyboard, int controllerIdx = 0);
 
+        // New method for doing damage
+        void DoDamage(int amount);
+
+        void AddScore(int points);
+
     private:
         float m_Speed;
         bool m_MovingLeft, m_MovingRight, m_MovingUp, m_MovingDown;
         glm::vec2 m_Direction{ 0.0f, 0.0f };
         TransformComponent* m_pTransform{ nullptr };
     };
+
 
     // Command class for movement
     class MoveCommand : public Command
@@ -72,4 +81,48 @@ namespace dae
         float m_DirectionX;
         float m_DirectionY;
     };
+
+
+    // Command class for causing damage
+    class DamageCommand : public Command
+    {
+    public:
+        DamageCommand(std::shared_ptr<PlayerCharacterComponent> player, int damageAmount)
+            : m_pPlayer(player), m_DamageAmount(damageAmount) {
+        }
+
+        void Execute() override
+        {
+            if (m_pPlayer)
+            {
+                m_pPlayer->DoDamage(m_DamageAmount);
+            }
+        }
+
+    private:
+        std::shared_ptr<PlayerCharacterComponent> m_pPlayer;
+        int m_DamageAmount;
+    };
+
+    class ScoreCommand : public Command
+    {
+    public:
+        ScoreCommand(std::shared_ptr<PlayerCharacterComponent> player, int points)
+            : m_pPlayer(player), m_Points(points) {
+        }
+
+        void Execute() override
+        {
+            if (m_pPlayer)
+            {
+                m_pPlayer->AddScore(m_Points);
+            }
+        }
+
+    private:
+        std::shared_ptr<PlayerCharacterComponent> m_pPlayer;
+        int m_Points;
+    };
+
 }
+
