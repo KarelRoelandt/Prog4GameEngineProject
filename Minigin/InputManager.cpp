@@ -1,6 +1,6 @@
 #include "InputManager.h"
-#include "imgui.h"
-#include "backends/imgui_impl_sdl2.h"
+//#include "imgui.h"
+//#include "backends/imgui_impl_sdl2.h"
 #include <iostream>
 #include <cmath> // For stick deadzone calculations
 
@@ -46,7 +46,7 @@ namespace dae
                 }
 
                 // Event for ImGui
-                ImGui_ImplSDL2_ProcessEvent(&e);
+                //ImGui_ImplSDL2_ProcessEvent(&e);
             }
 
             // Update keyboard state

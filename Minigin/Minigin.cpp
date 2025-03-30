@@ -6,6 +6,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
+
 #include "Minigin.h"
 
 #include <iostream>
@@ -15,21 +16,22 @@
 #include "Renderer.h"
 #include "ResourceManager.h"
 #include "GameObject.h"
-#include "Scene.h" // Include the header file for dae::Scene
-#include <steam_api.h>
-#include "Achievements.h"
+
+//#include "Scene.h" // Include the header file for dae::Scene
+//#include <steam_api.h>
+//#include "Achievements.h"
 #include "Observer.h"
-#include "AchievementObserver.h"
+//#include "AchievementObserver.h"
 
 SDL_Window* g_window{};
 
-Achievement_t g_Achievements[] = {
-    { 0, "ACH_WIN_ONE_GAME", "Win One Game", "Win your first game", false, 0 },
-    { 1, "ACH_WIN_100_GAMES", "Win 100 Games", "Win 100 games", false, 0 },
-    // Add more achievements as needed
-};
+//Achievement_t g_Achievements[] = {
+//    { 0, "ACH_WIN_ONE_GAME", "Win One Game", "Win your first game", false, 0 },
+//    { 1, "ACH_WIN_100_GAMES", "Win 100 Games", "Win 100 games", false, 0 },
+//    // Add more achievements as needed
+//};
 
-CSteamAchievements* g_SteamAchievements = nullptr;
+//CSteamAchievements* g_SteamAchievements = nullptr;
 
 
 struct State
@@ -42,14 +44,14 @@ struct State
     // Interpolation function
     State Interpolate(const State& other, double alpha) const
 	{
-        State result;
+        State result{};
         result.position = position * (1.0 - alpha) + other.position * alpha;
         result.velocity = velocity * (1.0 - alpha) + other.velocity * alpha;
         return result;
     }
 };
 
-void PrintSDLVersion()
+static void PrintSDLVersion()
 {
     SDL_version version{};
     SDL_VERSION(&version);
@@ -133,11 +135,11 @@ void dae::Minigin::Run(const std::function<void()>& load)
     load();
 
 
-    g_SteamAchievements = new CSteamAchievements(g_Achievements, sizeof(g_Achievements) / sizeof(Achievement_t));
-    AchievementObserver* achievementObserver = new AchievementObserver(g_SteamAchievements);
+    //g_SteamAchievements = new CSteamAchievements(g_Achievements, sizeof(g_Achievements) / sizeof(Achievement_t));
+    //AchievementObserver* achievementObserver = new AchievementObserver(g_SteamAchievements);
 
-    Subject subject;
-    subject.AddObserver(achievementObserver);
+    //Subject subject;
+    //subject.AddObserver(achievementObserver);
 
 
     auto& renderer = Renderer::GetInstance();
@@ -177,11 +179,11 @@ void dae::Minigin::Run(const std::function<void()>& load)
             std::this_thread::sleep_for(std::chrono::duration<double>(targetFrameTime - frameTime));
         }
 
-        SteamAPI_RunCallbacks();
+        //SteamAPI_RunCallbacks();
     }
 
-    SteamAPI_Shutdown();
+   //SteamAPI_Shutdown();
 
-    delete g_SteamAchievements;
-    delete achievementObserver;
+    //delete g_SteamAchievements;
+    //delete achievementObserver;
 }

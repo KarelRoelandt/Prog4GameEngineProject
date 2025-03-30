@@ -1,6 +1,6 @@
 #pragma once
 #include "BaseComponent.h"
-#include "ImGuiComponent.h"
+//#include "ImGuiComponent.h"
 #include "TextureComponent.h"
 #include "TransformComponent.h"
 #include "Renderer.h"
@@ -49,10 +49,10 @@ namespace dae
                 }
             }
 
-            if (owner->HasComponent<ImGuiComponent>())
-            {
-                owner->Render();
-            }
+            //if (owner->HasComponent<ImGuiComponent>())
+            //{
+            //    owner->Render();
+            //}
         }
     };
 }

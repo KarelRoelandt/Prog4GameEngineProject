@@ -2,7 +2,7 @@
 #include <string>
 #include <functional>
 
-#include "TextComponent.h"
+//#include "TextComponent.h"
 
 namespace dae
 {
