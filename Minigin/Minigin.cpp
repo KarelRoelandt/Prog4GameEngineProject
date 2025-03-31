@@ -20,7 +20,7 @@
 //#include "Scene.h" // Include the header file for dae::Scene
 //#include <steam_api.h>
 //#include "Achievements.h"
-#include "Observer.h"
+//#include "Observer.h"
 //#include "AchievementObserver.h"
 
 SDL_Window* g_window{};

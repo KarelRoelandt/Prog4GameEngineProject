@@ -174,12 +174,14 @@
     <ClCompile Include="ScoreDisplay.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Event.h" />
     <ClInclude Include="ExampleComponent.h" />
     <ClInclude Include="Font.h" />
     <ClInclude Include="FPSComponent.h" />
     <ClInclude Include="HealthComponent.h" />
     <ClInclude Include="HealthDisplay.h" />
     <ClInclude Include="MoveCommand.h" />
+    <ClInclude Include="Observer.h" />
     <ClInclude Include="PlayerCharacterComponent.h" />
     <ClInclude Include="PlayerCommands.h" />
     <ClInclude Include="RenderComponent.h" />

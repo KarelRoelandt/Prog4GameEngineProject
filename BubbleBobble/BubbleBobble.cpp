@@ -31,6 +31,7 @@
 #include "ScoreComponent.h"
 #include "ScoreDisplay.h"
 
+#include "Observer.h"
 
 //#include <steam_api.h>
 //#include <thread>
