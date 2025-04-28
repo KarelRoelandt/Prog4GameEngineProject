@@ -6,6 +6,9 @@
 
 #include "Minigin.h"
 
+#include <iostream>
+#include <filesystem>
+
 #include <SDL.h>
 #include <chrono>
 #include <string>
@@ -32,6 +35,9 @@
 #include "ScoreDisplay.h"
 
 #include "Observer.h"
+
+#include "SoundService.h"
+#include "ServiceLocator.h"
 
 //#include <steam_api.h>
 //#include <thread>
@@ -286,6 +292,16 @@ int main(int, char* [])
 
     dae::Minigin engine("../Data/");
     engine.Initialize();
+
+    auto soundService = ServiceLocator::GetSoundService();
+    if (soundService)
+    {
+        std::cout << "Current working directory: " << std::filesystem::current_path() << std::endl;
+
+        soundService->LoadSound("Data/Sound/MainTheme.mp3");
+        soundService->OutputSound("Data/Sound/MainTheme.mp3", 16);
+
+    }
 
     engine.Run(load);
 

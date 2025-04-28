@@ -7,6 +7,8 @@
 #include "HealthComponent.h"
 #include "ScoreComponent.h"
 
+#include "ServiceLocator.h"
+
 namespace dae
 {
     PlayerCharacterComponent::PlayerCharacterComponent(GameObject* owner, float speed)
@@ -16,6 +18,7 @@ namespace dae
         , m_MovingRight(false)
         , m_MovingUp(false)
         , m_MovingDown(false)
+        , m_pSoundService(ServiceLocator::GetSoundService())
     {
         // Get the transform component as a raw pointer
         auto transformPtr = GetOwner()->GetComponent<TransformComponent>();
@@ -29,6 +32,9 @@ namespace dae
         if (healthComponent)
         {
             healthComponent->TakeDamage(amount);
+
+            m_pSoundService->LoadSound("Data/Sound/KillEnemy.wav");
+            m_pSoundService->OutputSound("Data/Sound/KillEnemy.wav", 64);
         }
     }
 
@@ -39,6 +45,9 @@ namespace dae
         if (scoreComponent)
         {
             scoreComponent->AddScore(points);
+
+            m_pSoundService->LoadSound("Data/Sound/GetFruit.wav");
+            m_pSoundService->OutputSound("Data/Sound/GetFruit.wav", 64);
         }
     }
 

@@ -6,7 +6,6 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
-#include <SDL_mixer.h>
 
 #include "Minigin.h"
 
@@ -17,6 +16,10 @@
 #include "Renderer.h"
 #include "ResourceManager.h"
 #include "GameObject.h"
+
+#include <SDL_mixer.h>
+#include "ServiceLocator.h"
+#include "SoundService.h"
 
 //#include "Scene.h" // Include the header file for dae::Scene
 //#include <steam_api.h>
@@ -118,6 +121,13 @@ dae::Minigin::~Minigin()
 void dae::Minigin::Initialize()
 {
     // Additional initialization if needed
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+    {
+        std::cerr << "[ERROR] SDL_mixer could not initialize! SDL_mixer Error: " << Mix_GetError() << std::endl;
+    }
+
+    auto soundService = std::make_shared<SoundService>();
+    ServiceLocator::RegisterSoundService(soundService);
 }
 
 void dae::Minigin::Cleanup()

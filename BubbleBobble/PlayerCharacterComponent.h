@@ -5,6 +5,9 @@
 #include <glm.hpp>
 #include <memory>
 #include "Command.h"
+
+#include "SoundService.h"
+
 class Event;  // Forward declaration of Event
 class Observer;  // Forward declaration of Observer
 
@@ -39,6 +42,8 @@ namespace dae
         bool m_MovingLeft, m_MovingRight, m_MovingUp, m_MovingDown;
         glm::vec2 m_Direction{ 0.0f, 0.0f };
         TransformComponent* m_pTransform{ nullptr };
+
+       std::shared_ptr<ISoundService> m_pSoundService;
     };
 
 
