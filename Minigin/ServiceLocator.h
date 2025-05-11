@@ -4,10 +4,10 @@
 
 class ISoundService;
 
-class ServiceLocator
+class ServiceLocator final
 {
 public:
-    static void RegisterSoundService(std::shared_ptr<ISoundService> service);
+    static void RegisterSoundService(const std::shared_ptr<ISoundService>& service);
     static std::shared_ptr<ISoundService> GetSoundService();
 
 private:
