@@ -2,9 +2,16 @@
 #pragma once
 #include "ISoundService.h"
 
-class NullSoundService : public ISoundService
+class NullSoundService final : public ISoundService
 {
 public:
-    void LoadSound(const std::string& /*filePath*/) override {}
-    void OutputSound(const std::string& /*filePath*/, int /*volume*/) override {}
+    void LoadSound(const std::string&) override {}
+    void OutputSound(const std::string&, int) override {}
+
+    void LoadMusic(const std::string&) override {}
+    void PlayMusic(const std::string&, int, bool) override {}
+    void StopMusic() override {}
+    void PauseMusic() override {}
+    void ResumeMusic() override {}
+    bool IsMusicPlaying() override { return false; }
 };

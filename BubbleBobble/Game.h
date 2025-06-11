@@ -1,4 +1,4 @@
-#pragma once
+	#pragma once
 
 #include <memory>
 #include "GameState.h"
@@ -40,6 +40,7 @@ public:
 
     void Render()
     {
+        // If you have state-specific rendering, make sure it's called:
         if (m_CurrentState)
         {
             m_CurrentState->Render(this);

@@ -20,6 +20,22 @@ namespace dae
             }
         }
 
+
+        void ClearAllBindings()
+        {
+            // Clear all keyboard bindings
+            keyCommands.clear();
+
+            // Clear all gamepad button bindings
+            gamepadCommands.clear();
+
+            // Clear all stick bindings
+            stickCommands.clear();
+
+            std::cout << "[\033[32mDebug\033[0m] Cleared all input bindings\n";
+        }
+
+
         bool ProcessInput()
         {
             SDL_Event e;
@@ -53,7 +69,12 @@ namespace dae
             m_Keyboard.Update();
 
             // Check key states and execute commands
-            const std::vector<SDL_Keycode> keys = { SDLK_w, SDLK_a, SDLK_s, SDLK_d, SDLK_c, SDLK_z, SDLK_x };
+            const std::vector<SDL_Keycode> keys = {
+			    SDLK_w, SDLK_a, SDLK_s, SDLK_d,  // Movement keys
+			    SDLK_c, SDLK_z, SDLK_x,          // Action keys
+			    SDLK_p, SDLK_ESCAPE, // Menu keys
+			    SDLK_l                           // Leave game key
+            };
             for (const auto& key : keys)
             {
                 if (m_Keyboard.IsKeyPressed(key))
@@ -370,6 +391,14 @@ namespace dae
     bool InputManager::ProcessInput()
     {
         return pImpl->ProcessInput();
+    }
+
+    // Implementation of the ClearAllBindings method
+
+    void dae::InputManager::ClearAllBindings()
+    {
+        // Delegate to the implementation class
+        pImpl->ClearAllBindings();
     }
 
     void InputManager::BindCommand(int key, InputState state, std::shared_ptr<Command> command)

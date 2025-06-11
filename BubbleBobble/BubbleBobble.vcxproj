@@ -191,6 +191,7 @@
     <ClInclude Include="RotationComponent.h" />
     <ClInclude Include="ScoreComponent.h" />
     <ClInclude Include="ScoreDisplay.h" />
+    <ClInclude Include="StartGameCommand.h" />
     <ClInclude Include="StartMenuState.h" />
     <ClInclude Include="Subject.h" />
   </ItemGroup>

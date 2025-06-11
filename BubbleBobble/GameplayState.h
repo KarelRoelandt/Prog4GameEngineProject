@@ -1,21 +1,15 @@
 #pragma once
 
 #include <filesystem>
-
 #include <iostream>
 #include "Game.h"
 #include "GameState.h"
-
 #include "HighScoreState.h"
-
 #include "Minigin.h"
 #include "SceneManager.h"
 #include "ServiceLocator.h"
-
-
 #include <chrono>
 #include <string>
-
 #include "FPSComponent.h"
 #include "GameObject.h"
 #include "RenderComponent.h"
@@ -24,93 +18,113 @@
 #include "TextComponent.h"
 #include "TextureComponent.h"
 #include "TransformComponent.h"
-
-//#include "ImGuiComponent.h"
-
 #include "InputManager.h"
 #include "PlayerCharacterComponent.h"
 #include "RotationComponent.h"
-
 #include "HealthComponent.h"
 #include "HealthDisplay.h"
-
 #include "ScoreComponent.h"
 #include "ScoreDisplay.h"
-
 #include "Observer.h"
-
-
-
-//#include <steam_api.h>
-//#include <thread>
-
-//#include "Achievements.h"
-//#include "AchievementObserver.h"
-
-
+#include "SoundService.h"
 
 class GameplayState : public GameState
 {
 public:
+    GameplayState() {}
 
-    GameplayState() : engine("../Data/") {}
 
-
-    void Enter(Game* /*game*/) override
+    void Enter(Game* game) override
     {
-        engine.Initialize("../Data/");
+        std::cout << "[\033[32mDebug\033[0m] Starting GameplayState::Enter\n";
 
-        auto soundService = ServiceLocator::GetSoundService();
-        if (soundService)
+        // Clear any existing input bindings
+        dae::InputManager::GetInstance().ClearAllBindings();
+        std::cout << "[\033[32mDebug\033[0m] Cleared all previous input bindings\n";
+
+        // Create scene
+        dae::SceneManager::GetInstance().CreateScene("Demo");
+
+        // Play background music using EXACTLY the same pattern as the working sound effects
+        try
         {
-            std::cout << "Current working directory: " << std::filesystem::current_path() << std::endl;
-
-            soundService->LoadSound("Data/Sound/MainTheme.mp3");
-            soundService->OutputSound("Data/Sound/MainTheme.mp3", 16);
+            auto soundService = ServiceLocator::GetSoundService();
+            soundService->LoadMusic("Data/Sound/MainTheme.mp3");
+            soundService->PlayMusic("Data/Sound/MainTheme.mp3", 64, true); // Loop the music
+            std::cout << "[\033[32mDebug\033[0m] Playing background music\n";
+        }
+        catch (const std::exception& e)
+        {
+            std::cerr << "[\033[31mError\033[0m] Failed to play background music: " << e.what() << std::endl;
         }
 
-        std::cout << "Entering Gameplay State\n";
-        // Initialize gameplay scene here
+        Load();
 
-        engine.Run(&GameplayState::load); // Pass the static function directly
-    }
+        std::cout << "[\033[32mDebug\033[0m] GameplayState::Enter after loading scene\n";
 
-    void Update(Game* game, float deltaTime) override
-    {
-        std::cout << "Updating Gameplay State\n";
-        std::cout << "Press 'L' to Leave the game...\n";
-        char input;
-        std::cin >> input;
-        if (input == 'L' || input == 'l')
+        // Set up input handling for state transitions
+        auto& inputManager = dae::InputManager::GetInstance();
+
+        // Create a concrete command class implementation 
+        class LeaveGameCommand : public dae::Command
         {
-            game->ChangeState(std::make_shared<HighScoreState>());
-        }
-        game->Update(deltaTime);
+        public:
+            explicit LeaveGameCommand(Game* gamePtr) : m_Game(gamePtr) {}
+
+            void Execute() override
+            {
+                std::cout << "[\033[32mDebug\033[0m] LeaveGameCommand executed!\n";
+                m_Game->ChangeState(std::make_shared<HighScoreState>());
+            }
+        private:
+            Game* m_Game;
+        };
+
+        // Use the concrete implementation with SDLK_l
+        inputManager.BindCommand(SDLK_l, dae::InputState::Down,
+            std::make_shared<LeaveGameCommand>(game));
+
+        std::cout << "[\033[32mDebug\033[0m] GameplayState::Enter completed\n";
     }
 
-    void Render(Game* game) override
+    // Rest of the class remains unchanged...
+    void Update(Game* /*game*/, float /*deltaTime*/) override
     {
-        game->Render();
-        std::cout << "Rendering Gameplay Screen\n";
-        // Render gameplay scene here
+    }
+
+    void Render(Game* /*game*/) override
+    {
     }
 
     void Exit(Game* /*game*/) override
     {
-		
-        std::cout << "Exiting Gameplay State\n";
+        std::cout << "[\033[32mDebug\033[0m] Exiting Gameplay State\n";
+
+        // Stop background music
+        try
+        {
+            auto soundService = ServiceLocator::GetSoundService();
+            soundService->StopMusic(); // Properly stop the music
+        }
+        catch (...)
+        {
+            std::cerr << "[\033[31mError\033[0m] Error stopping music\n";
+        }
+
+
+        // Clear input bindings specific to this state
+        dae::InputManager::GetInstance().ClearAllBindings();
+        std::cout << "[\033[32mDebug\033[0m] Cleared GameplayState input bindings\n";
+
         // Clean up gameplay scene here
         dae::SceneManager::GetInstance().DestroyScene("Demo");
-        engine.Cleanup();
     }
 
-
 private:
-    dae::Minigin engine;
-
-    static void load()
+    static void Load()
     {
-        auto& scene = dae::SceneManager::GetInstance().CreateScene("Demo");
+        // Get the existing scene
+        auto& scene = dae::SceneManager::GetInstance().GetScene("Demo");
 
         // Get screen dimensions
         float screenWidth = 1024; // Set your screen width here
