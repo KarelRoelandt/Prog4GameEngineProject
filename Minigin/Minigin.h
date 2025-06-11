@@ -12,16 +12,21 @@ namespace dae
 		explicit Minigin(const std::string& dataPath);
 		~Minigin();
 
+		void Initialize(const std::string& dataPath);
+
 		Minigin(const Minigin& other) = delete;
 		Minigin(Minigin&& other) = delete;
 		Minigin& operator=(const Minigin& other) = delete;
 		Minigin& operator=(Minigin&& other) = delete;
 
-		void Initialize();
 		void Cleanup();
 		void Run(const std::function<void()>& load);
 
+		
+
 	private:
+
+		bool isInitialized{};
 
 	};
 }

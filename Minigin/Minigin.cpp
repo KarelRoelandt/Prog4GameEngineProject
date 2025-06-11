@@ -85,6 +85,24 @@ static void PrintSDLVersion()
 
 dae::Minigin::Minigin(const std::string& dataPath)
 {
+	Initialize(dataPath);
+}
+
+dae::Minigin::~Minigin()
+{
+    Renderer::GetInstance().Destroy();
+    SDL_DestroyWindow(g_window);
+    g_window = nullptr;
+    SDL_Quit();
+}
+
+void dae::Minigin::Initialize(const std::string& dataPath)
+{
+    if (isInitialized)
+    {
+		std::cerr << "[ERROR] Minigin is already initialized!" << std::endl;
+		return;
+    }
     PrintSDLVersion();
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
@@ -108,18 +126,7 @@ dae::Minigin::Minigin(const std::string& dataPath)
     Renderer::GetInstance().Init(g_window);
 
     ResourceManager::GetInstance().Init(dataPath);
-}
 
-dae::Minigin::~Minigin()
-{
-    Renderer::GetInstance().Destroy();
-    SDL_DestroyWindow(g_window);
-    g_window = nullptr;
-    SDL_Quit();
-}
-
-void dae::Minigin::Initialize()
-{
     // Additional initialization if needed
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
     {
@@ -128,11 +135,14 @@ void dae::Minigin::Initialize()
 
     auto soundService = std::make_shared<SoundService>();
     ServiceLocator::RegisterSoundService(soundService);
+
+	isInitialized = true;
 }
 
 void dae::Minigin::Cleanup()
 {
     // Additional cleanup if needed
+	isInitialized = false;
 }
 
 double getCurrentTime()
