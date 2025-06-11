@@ -30,7 +30,7 @@ int main(int, char* [])
     engine.Run([&game]()
         {
             // Just set up any one-time initialization here
-            std::cout << "[\033[32mDebug\033[0m] Engine initialization complete\n";
+            std::cout << "[\033[33mDebug\033[0m] Engine initialization complete\n";
         });
 
     // Cleanup engine at the end

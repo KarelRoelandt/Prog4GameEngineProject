@@ -36,11 +36,11 @@ public:
 
     void Enter(Game* game) override
     {
-        std::cout << "[\033[32mDebug\033[0m] Starting GameplayState::Enter\n";
+        std::cout << "[\033[33mDebug\033[0m] Starting GameplayState::Enter\n";
 
         // Clear any existing input bindings
         dae::InputManager::GetInstance().ClearAllBindings();
-        std::cout << "[\033[32mDebug\033[0m] Cleared all previous input bindings\n";
+        std::cout << "[\033[33mDebug\033[0m] Cleared all previous input bindings\n";
 
         // Create scene
         dae::SceneManager::GetInstance().CreateScene("Demo");
@@ -50,17 +50,17 @@ public:
         {
             auto soundService = ServiceLocator::GetSoundService();
             soundService->LoadMusic("Data/Sound/MainTheme.mp3");
-            soundService->PlayMusic("Data/Sound/MainTheme.mp3", 64, true); // Loop the music
-            std::cout << "[\033[32mDebug\033[0m] Playing background music\n";
+            soundService->PlayMusic("Data/Sound/MainTheme.mp3", 32, true); // Loop the music
+            std::cout << "[\033[33mDebug\033[0m] Playing background music\n";
         }
         catch (const std::exception& e)
         {
-            std::cerr << "[\033[31mError\033[0m] Failed to play background music: " << e.what() << std::endl;
+            std::cerr << "[\033[31mERROR\033[0m] Failed to play background music: " << e.what() << "\n";
         }
 
         Load();
 
-        std::cout << "[\033[32mDebug\033[0m] GameplayState::Enter after loading scene\n";
+        std::cout << "[\033[33mDebug\033[0m] GameplayState::Enter after loading scene\n";
 
         // Set up input handling for state transitions
         auto& inputManager = dae::InputManager::GetInstance();
@@ -73,7 +73,7 @@ public:
 
             void Execute() override
             {
-                std::cout << "[\033[32mDebug\033[0m] LeaveGameCommand executed!\n";
+                std::cout << "[\033[33mDebug\033[0m] LeaveGameCommand executed!\n";
                 m_Game->ChangeState(std::make_shared<HighScoreState>());
             }
         private:
@@ -84,7 +84,7 @@ public:
         inputManager.BindCommand(SDLK_l, dae::InputState::Down,
             std::make_shared<LeaveGameCommand>(game));
 
-        std::cout << "[\033[32mDebug\033[0m] GameplayState::Enter completed\n";
+        std::cout << "[\033[33mDebug\033[0m] GameplayState::Enter completed\n";
     }
 
     // Rest of the class remains unchanged...
@@ -98,7 +98,7 @@ public:
 
     void Exit(Game* /*game*/) override
     {
-        std::cout << "[\033[32mDebug\033[0m] Exiting Gameplay State\n";
+        std::cout << "[\033[33mDebug\033[0m] Exiting Gameplay State\n";
 
         // Stop background music
         try
@@ -114,7 +114,7 @@ public:
 
         // Clear input bindings specific to this state
         dae::InputManager::GetInstance().ClearAllBindings();
-        std::cout << "[\033[32mDebug\033[0m] Cleared GameplayState input bindings\n";
+        std::cout << "[\033[33mDebug\033[0m] Cleared GameplayState input bindings\n";
 
         // Clean up gameplay scene here
         dae::SceneManager::GetInstance().DestroyScene("Demo");

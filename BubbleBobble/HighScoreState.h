@@ -5,6 +5,8 @@
 #include <iostream>
 #include <memory>
 
+#include "Scene.h"
+
 // Forward declare StartMenuState instead of including it
 class StartMenuState;
 
@@ -15,4 +17,5 @@ public:
     void Update(Game* game, float deltaTime) override;
     void Render(Game* game) override;
     void Exit(Game* game) override;
+    void Load(dae::Scene& scene);
 };

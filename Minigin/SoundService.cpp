@@ -158,7 +158,7 @@ private:
         }
         else
         {
-            std::cerr << "[\033[31mERROR\033[0m] Sound not loaded, cannot play: " << filePath << std::endl;
+            std::cerr << "[\033[31mERROR\033[0m] Sound not loaded, cannot play: " << filePath << "\n";
         }
     }
 

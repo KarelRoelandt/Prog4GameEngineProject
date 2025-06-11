@@ -32,7 +32,7 @@ namespace dae
             // Clear all stick bindings
             stickCommands.clear();
 
-            std::cout << "[\033[32mDebug\033[0m] Cleared all input bindings\n";
+            std::cout << "[\033[33mDebug\033[0m] Cleared all input bindings\n";
         }
 
 
