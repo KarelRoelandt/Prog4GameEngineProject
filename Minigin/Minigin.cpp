@@ -100,8 +100,8 @@ void dae::Minigin::Initialize(const std::string& dataPath)
 {
     if (isInitialized)
     {
-		std::cerr << "[ERROR] Minigin is already initialized!" << std::endl;
-		return;
+        std::cout << "[\033[33mDebug\033[0m] Minigin is already initialized - skipping initialization.\n";
+        return; // Just return instead of showing an error
     }
     PrintSDLVersion();
 

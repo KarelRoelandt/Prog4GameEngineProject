@@ -27,7 +27,7 @@ public:
         // Initialize SDL_mixer
         if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) < 0)
         {
-            std::cerr << "[ERROR] SDL_mixer initialization failed: " << Mix_GetError() << std::endl;
+            std::cerr << "[\033[31mERROR\033[0m] SDL_mixer initialization failed: " << Mix_GetError() << std::endl;
         }
         // Allow 16 sound channels for effects
         Mix_AllocateChannels(16);
@@ -134,7 +134,7 @@ private:
             if (chunk)
             {
                 m_SoundCache[filePath] = chunk;
-                std::cout << "[\033[33mDebug\033[0m]] Sound loaded successfully: " << filePath << std::endl;
+                std::cout << "[\033[33mDebug\033[0m] Sound loaded successfully: " << filePath << "\n";
             }
             else
             {
@@ -211,7 +211,7 @@ private:
         if (Mix_PlayingMusic())
         {
             Mix_HaltMusic();
-            std::cout << "[\033[33mDebug\033[0m] Stopped music" << std::endl;
+            std::cout << "[\033[33mDebug\033[0m] Stopped music" << "\n";
         }
     }
 
@@ -220,7 +220,7 @@ private:
         if (Mix_PlayingMusic() && !Mix_PausedMusic())
         {
             Mix_PauseMusic();
-            std::cout << "[\033[33mDebug\033[0m] Paused music" << std::endl;
+            std::cout << "[\033[33mDebug\033[0m] Paused music" << "\n";
         }
     }
 
@@ -229,7 +229,7 @@ private:
         if (Mix_PausedMusic())
         {
             Mix_ResumeMusic();
-            std::cout << "[\033[33mDebug\033[0m] Resumed music" << std::endl;
+            std::cout << "[\033[33mDebug\033[0m] Resumed music" << "\n";
         }
     }
 
@@ -256,6 +256,7 @@ void SoundService::LoadSound(const std::string& filePath)
 
 void SoundService::OutputSound(const std::string& filePath, int volume)
 {
+    std::cout << "[\033[33mDebug\033[0m] CALLED OutputSound with path: " << filePath << "\n";
     m_Impl->Enqueue(SoundRequestType::PlaySound, filePath, volume);
 }
 

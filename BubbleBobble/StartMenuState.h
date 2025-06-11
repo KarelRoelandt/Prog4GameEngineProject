@@ -109,11 +109,11 @@ public:
             auto soundService = ServiceLocator::GetSoundService();
             // Try to output the sound with volume 0 to effectively stop it
             // This is a workaround if there's no direct StopSound method
-            soundService->OutputSound("Data/Sound/MainTheme.mp3", 0);
+            soundService->StopMusic();
         }
         catch (...)
         {
-            std::cerr << "[\033[31mError\033[0m] Error stopping menu music\n";
+            std::cerr << "[\033[31mERROR\033[0m] Error stopping menu music\n";
         }
 
         // Clear input bindings specific to this state

@@ -16,7 +16,7 @@ int main(int, char* [])
 {
     // Initialize engine once at the application level
     dae::Minigin engine("../Data/");
-    engine.Initialize("");
+    //engine.Initialize("");
 
     // Store engine reference in a globally accessible way
     g_Engine = &engine;

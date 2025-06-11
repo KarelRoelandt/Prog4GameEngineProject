@@ -27,8 +27,6 @@ public:
     }
 
 
-
-
     void Update(float deltaTime)
     {
         if (m_CurrentState)
