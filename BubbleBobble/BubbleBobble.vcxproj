@@ -169,6 +169,7 @@
     <ClCompile Include="HealthComponent.cpp" />
     <ClCompile Include="HealthDisplay.cpp" />
     <ClCompile Include="HighScoreState.cpp" />
+    <ClCompile Include="LevelParser.cpp" />
     <ClCompile Include="PlayerCharacterComponent.cpp" />
     <ClCompile Include="RotationComponent.cpp" />
     <ClCompile Include="ScoreComponent.cpp" />
@@ -187,6 +188,7 @@
     <ClInclude Include="HealthComponent.h" />
     <ClInclude Include="HealthDisplay.h" />
     <ClInclude Include="HighScoreState.h" />
+    <ClInclude Include="LevelParser.h" />
     <ClInclude Include="MoveCommand.h" />
     <ClInclude Include="Observer.h" />
     <ClInclude Include="PlayerCharacterComponent.h" />

@@ -10,7 +10,7 @@ namespace dae
      * Simple RAII wrapper for the SDL renderer
      */
     class Renderer final : public Singleton<Renderer>
-	{
+    {
         SDL_Renderer* m_renderer{};
         SDL_Window* m_window{};
         SDL_Color m_clearColor{};
@@ -21,6 +21,8 @@ namespace dae
 
         void RenderTexture(const Texture2D& texture, float x, float y) const;
         void RenderTexture(const Texture2D& texture, float x, float y, float width, float height) const;
+        // ADD THIS NEW OVERLOAD for source rectangle rendering
+        void RenderTexture(const Texture2D& texture, float x, float y, float width, float height, const SDL_Rect* srcRect) const;
 
         SDL_Renderer* GetSDLRenderer() const;
 

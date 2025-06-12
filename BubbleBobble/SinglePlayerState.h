@@ -1,13 +1,30 @@
-// SinglePlayerState.h
 #pragma once
-#include "BaseGameplayState.h"
+#include "BaseGameplayState.h" // Your actual BaseGameplayState
+#include "LevelParser.h"       // For parsing and loading level data
 
-class SinglePlayerState : public BaseGameplayState
+// Forward declarations (Game is likely already included via BaseGameplayState or GameState)
+// namespace dae { class Scene; } // Scene is likely known via BaseGameplayState or its includes
+
+class SinglePlayerState final : public BaseGameplayState
 {
-protected:
-    // Override to only create Player 1
+public:
+    SinglePlayerState() = default;
+    ~SinglePlayerState() override = default;
+
+    SinglePlayerState(const SinglePlayerState& other) = delete;
+    SinglePlayerState(SinglePlayerState&& other) = delete;
+    SinglePlayerState& operator=(const SinglePlayerState& other) = delete;
+    SinglePlayerState& operator=(SinglePlayerState&& other) = delete;
+
+    // Overriding methods from GameState (via BaseGameplayState)
+    void Enter(Game* game) override;
+    void Update(Game* game, float deltaTime) override;
+    void Render(Game* game) override; // Assuming BaseGameplayState has Render
+    void Exit(Game* game) override;
+
+private:
+    // Implementing the pure virtual method from BaseGameplayState
     void SetupPlayers(dae::Scene& scene) override;
-    
-    // Optionally override scene name
-    std::string GetSceneName() const override { return "SinglePlayer"; }
+
+    LevelParser m_LevelParser; // Instance of the level parser
 };

@@ -1,10 +1,18 @@
 #pragma once
 #include "BaseComponent.h"
-//#include "ImGuiComponent.h"
-#include "TextureComponent.h"
+#include "TextureComponent.h"   // Needs the updated TextureComponent definition
 #include "TransformComponent.h"
-#include "Renderer.h"
-#include "TextComponent.h"
+#include "Renderer.h"           // For dae::Renderer
+#include "TextComponent.h"      // If you have a TextComponent that RenderComponent might render
+#include "GameObject.h"
+#include <iostream>             // For std::cout logging (optional)
+
+// Ensure your Vector2 header is included (defined in CustomDefs.h for your project)
+#include "CustomDefs.h" 
+
+// GLM includes (used for objectPosition, and potentially by TransformComponent)
+#include <glm.hpp>
+#include <vec2.hpp> // For glm::vec2
 
 namespace dae
 {
@@ -20,49 +28,65 @@ namespace dae
         RenderComponent& operator=(RenderComponent&&) noexcept = delete;
 
         void Update(float /*deltaTime*/) override {}
+
         void Render() const override
         {
             auto owner = GetOwner();
-            if (!owner) return; // Safety check for null owner
-
-            glm::vec2 objectPosition{};
-            if (owner->HasComponent<TransformComponent>())
+            if (!owner)
             {
-                auto transformComponent = owner->GetComponent<TransformComponent>();
-                if (transformComponent) // Ensure component exists
-                    objectPosition = transformComponent->GetPosition();
+                return;
             }
 
+            glm::vec2 objectPosition{};
+            auto transformComponent = owner->GetComponent<TransformComponent>();
+            if (transformComponent)
+            {
+                objectPosition = transformComponent->GetPosition(); // Assuming this returns glm::vec2
+            }
+
+            // --- Texture Rendering Part ---
             if (owner->HasComponent<TextureComponent>())
             {
                 auto textureComponent = owner->GetComponent<TextureComponent>();
-                if (textureComponent) // Ensure component exists
+                if (textureComponent)
                 {
-                    auto texture = textureComponent->GetTexture(); // Value not reference
-                    if (texture)
+                    auto textureSharedPtr = textureComponent->GetTexture();
+                    if (textureSharedPtr)
                     {
-                        Renderer::GetInstance().RenderTexture(*texture, objectPosition.x, objectPosition.y, textureComponent->GetSize().x, textureComponent->GetSize().y);
+                        // Use GetRenderDestinationSize() here
+                        dae::Vector2 renderSizeDae = textureComponent->GetRenderDestinationSize();
+                        float destWidth = renderSizeDae.x;
+                        float destHeight = renderSizeDae.y;
+
+                        if (textureComponent->IsUsingSourceRect())
+                        {
+                            const SDL_Rect& srcRect = textureComponent->GetSourceRect();
+                            Renderer::GetInstance().RenderTexture(*textureSharedPtr, objectPosition.x, objectPosition.y, destWidth, destHeight, &srcRect);
+                        }
+                        else
+                        {
+                            Renderer::GetInstance().RenderTexture(*textureSharedPtr, objectPosition.x, objectPosition.y, destWidth, destHeight, nullptr);
+                        }
                     }
                 }
             }
 
+            // --- Text Rendering Part (if applicable) ---
             if (owner->HasComponent<TextComponent>())
             {
                 auto textComponent = owner->GetComponent<TextComponent>();
-                if (textComponent) // Ensure component exists
+                if (textComponent)
                 {
-                    auto texture = textComponent->GetTexture(); // Value not reference
-                    if (texture)
+                    auto textureSharedPtr = textComponent->GetTexture();
+                    if (textureSharedPtr)
                     {
-                        Renderer::GetInstance().RenderTexture(*texture, objectPosition.x, objectPosition.y);
+                        // Assuming TextComponent's texture is rendered at its native size or TextComponent handles its own sizing.
+                        // If TextComponent needs scaling like TextureComponent, this part might need adjustment.
+                        // The current Renderer::RenderTexture overload used here implies native size rendering at the given position.
+                        Renderer::GetInstance().RenderTexture(*textureSharedPtr, objectPosition.x, objectPosition.y);
                     }
                 }
             }
-
-            //if (owner->HasComponent<ImGuiComponent>())
-            //{
-            //    owner->Render();
-            //}
         }
     };
 }
