@@ -1,9 +1,14 @@
 #pragma once
-#include "BaseComponent.h"
+
 #include <glm.hpp>
 #include <gtc/quaternion.hpp>
 #include <gtc/matrix_transform.hpp>
-#include <iostream> // Include iostream for std::cout
+#include <iostream>
+
+#include "BaseComponent.h"
+
+namespace dae { class GameObject; }
+
 
 namespace dae
 {
@@ -11,7 +16,8 @@ namespace dae
     {
     public:
         TransformComponent(GameObject* owner)
-            : BaseComponent(owner), m_LocalPosition(0.0f, 0.0f, 0.0f), m_LocalRotation(glm::quat()), m_LocalScale(1.0f, 1.0f, 1.0f), m_WorldTransform(1.0f), m_IsDirty(true), m_InitialPosition(0.0f, 0.0f)
+            : BaseComponent(owner), m_LocalPosition(0.0f, 0.0f, 0.0f), m_LocalRotation(glm::quat()),
+            m_LocalScale(1.0f, 1.0f, 1.0f), m_WorldTransform(1.0f), m_IsDirty(true)
         {
         }
 
@@ -81,16 +87,6 @@ namespace dae
             return glm::vec2(m_LocalPosition.x, m_LocalPosition.y);
         }
 
-        void SetInitialPosition(const glm::vec2& position)
-        {
-            m_InitialPosition = position;
-        }
-
-        const glm::vec2& GetInitialPosition() const
-        {
-            return m_InitialPosition;
-        }
-
         void PrintPositions() const
         {
             std::cout << "Local Position: (" << m_LocalPosition.x << ", " << m_LocalPosition.y << ", " << m_LocalPosition.z << ")\n";
@@ -100,32 +96,13 @@ namespace dae
         }
 
     private:
-        void UpdateWorldTransform()
-        {
-            if (auto owner = GetOwner())
-            {
-                if (auto parent = owner->GetParent())
-                {
-                    auto parentTransform = parent->GetComponent<TransformComponent>()->GetWorldTransform();
-                    m_WorldTransform = parentTransform * glm::translate(glm::mat4(1.0f), m_LocalPosition) *
-                        glm::mat4_cast(m_LocalRotation) *
-                        glm::scale(glm::mat4(1.0f), m_LocalScale);
-                }
-                else
-                {
-                    m_WorldTransform = glm::translate(glm::mat4(1.0f), m_LocalPosition) *
-                        glm::mat4_cast(m_LocalRotation) *
-                        glm::scale(glm::mat4(1.0f), m_LocalScale);
-                }
-            }
-            m_IsDirty = false;
-        }
+        void UpdateWorldTransform(); // Declaration only - implementation in .cpp file
 
         glm::vec3 m_LocalPosition;
         glm::quat m_LocalRotation;
         glm::vec3 m_LocalScale;
         glm::mat4 m_WorldTransform;
+
         bool m_IsDirty;
-        glm::vec2 m_InitialPosition; // Added member variable for initial position
     };
 }

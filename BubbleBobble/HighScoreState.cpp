@@ -9,10 +9,19 @@
 #include "RenderComponent.h"
 #include "ResourceManager.h"
 #include "TextureComponent.h"
+#include <fstream>
+#include <algorithm>
+#include <sstream>
+#include <filesystem>
+
+// Define the high score file path
+const std::string HighScoreState::HIGHSCORE_FILE = "Data/HighScores.txt";
 
 void HighScoreState::Enter(Game* game)
 {
     std::cout << "[\033[33mDebug\033[0m] Entering High Score State\n";
+
+    EnsureHighScoreFileExists();
 
     // Clear any existing input bindings
     dae::InputManager::GetInstance().ClearAllBindings();
@@ -91,6 +100,83 @@ void HighScoreState::Exit(Game* /*game*/)
     dae::SceneManager::GetInstance().DestroyScene("HighScore");
 }
 
+std::vector<HighScoreEntry> HighScoreState::LoadHighScores()
+{
+    std::vector<HighScoreEntry> scores;
+
+    std::ifstream file(HIGHSCORE_FILE);
+    if (file.is_open())
+    {
+        std::string line;
+        while (std::getline(file, line) && scores.size() < MAX_SCORES)
+        {
+            std::stringstream ss(line);
+            HighScoreEntry entry;
+
+            // Format in file: NAME SCORE (e.g. "AAA 10000")
+            if (ss >> entry.name >> entry.score)
+            {
+                scores.push_back(entry);
+            }
+        }
+        file.close();
+        std::cout << "[\033[33mDebug\033[0m] Loaded " << scores.size() << " high scores\n";
+    }
+    else
+    {
+        std::cout << "[\033[33mDebug\033[0m] High score file not found, using default scores\n";
+
+        // Default scores if file can't be opened
+        scores = {
+            {"AAA", 10000},
+            {"BBB", 9000},
+            {"CCC", 8000},
+            {"DDD", 7000},
+            {"EEE", 6000}
+        };
+    }
+
+    return scores;
+}
+
+void HighScoreState::SaveHighScore(const std::string& name, int score)
+{
+    // Load existing scores
+    auto scores = LoadHighScores();
+
+    // Add new score
+    scores.push_back({ name, score });
+
+    // Sort scores in descending order
+    std::sort(scores.begin(), scores.end(),
+        [](const HighScoreEntry& a, const HighScoreEntry& b)
+        {
+            return a.score > b.score;
+        });
+
+    // Keep only the top MAX_SCORES
+    if (scores.size() > MAX_SCORES)
+    {
+        scores.resize(MAX_SCORES);
+    }
+
+    // Save back to file
+    std::ofstream file(HIGHSCORE_FILE);
+    if (file.is_open())
+    {
+        for (const auto& entry : scores)
+        {
+            file << entry.name << " " << entry.score << std::endl;
+        }
+        file.close();
+        std::cout << "[\033[33mDebug\033[0m] Saved high scores to file\n";
+    }
+    else
+    {
+        std::cerr << "[\033[31mERROR\033[0m] Could not save high scores to file\n";
+    }
+}
+
 void HighScoreState::Load(dae::Scene& scene)
 {
     // Screen dimensions
@@ -116,27 +202,24 @@ void HighScoreState::Load(dae::Scene& scene)
     title->AddComponent<dae::RenderComponent>();
     scene.Add(title);
 
-    // Add placeholder high scores
+    // Load high scores from file
+    auto scores = LoadHighScores();
+
+    // Add high scores from file
     auto smallFont = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 24);
 
-    // List of placeholder scores
-    const char* scores[] = {
-        "1. AAA - 10000",
-        "2. BBB - 9000",
-        "3. CCC - 8000",
-        "4. DDD - 7000",
-        "5. EEE - 6000"
-    };
-
-    // Add each score as a text component
-    for (int i = 0; i < 5; ++i)
+    for (size_t i = 0; i < scores.size(); ++i)
     {
-        auto scoreText = std::make_shared<dae::GameObject>();
-        scoreText->AddComponent<dae::TextComponent>(scores[i], smallFont);
-        transformComponent = scoreText->AddComponent<dae::TransformComponent>();
+        // Create formatted score text (e.g. "1. AAA - 10000")
+        std::stringstream scoreText;
+        scoreText << (i + 1) << ". " << scores[i].name << " - " << scores[i].score;
+
+        auto scoreObj = std::make_shared<dae::GameObject>();
+        scoreObj->AddComponent<dae::TextComponent>(scoreText.str(), smallFont);
+        transformComponent = scoreObj->AddComponent<dae::TransformComponent>();
         transformComponent->SetPosition(400.0f, 180.0f + static_cast<float>(i) * 40.0f);
-        scoreText->AddComponent<dae::RenderComponent>();
-        scene.Add(scoreText);
+        scoreObj->AddComponent<dae::RenderComponent>();
+        scene.Add(scoreObj);
     }
 
     // Add instructions to return to menu
@@ -146,4 +229,48 @@ void HighScoreState::Load(dae::Scene& scene)
     transformComponent->SetPosition(350.0f, 450.0f);
     instructions->AddComponent<dae::RenderComponent>();
     scene.Add(instructions);
+}
+
+// Add this method to HighScoreState class
+void HighScoreState::EnsureHighScoreFileExists()
+{
+    // Check if file exists first
+    std::ifstream checkFile(HIGHSCORE_FILE);
+    if (!checkFile.is_open())
+    {
+        std::cout << "[\033[33mDebug\033[0m] Creating initial high score file\n";
+
+        // Create the directory if it doesn't exist
+        std::filesystem::path filePath(HIGHSCORE_FILE);
+        std::filesystem::create_directories(filePath.parent_path());
+
+        // Create default high scores
+        std::vector<HighScoreEntry> defaultScores = {
+            {"AAA", 10000},
+            {"BBB", 9000},
+            {"CCC", 8000},
+            {"DDD", 7000},
+            {"EEE", 6000}
+        };
+
+        // Save to file
+        std::ofstream file(HIGHSCORE_FILE);
+        if (file.is_open())
+        {
+            for (const auto& entry : defaultScores)
+            {
+                file << entry.name << " " << entry.score << std::endl;
+            }
+            file.close();
+            std::cout << "[\033[33mDebug\033[0m] Created initial high score file\n";
+        }
+        else
+        {
+            std::cerr << "[\033[31mERROR\033[0m] Failed to create high score file\n";
+        }
+    }
+    else
+    {
+        checkFile.close();
+    }
 }

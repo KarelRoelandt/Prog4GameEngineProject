@@ -58,7 +58,7 @@ public:
         }
 
         // Clean up music cache, avoiding double-free
-	        for (auto& pair : m_MusicCache)
+			        for (auto& pair : m_MusicCache)
         {
             // Only free if it's not the current music (which was already freed)
             if (pair.second != nullptr && pair.second != m_CurrentMusic)
