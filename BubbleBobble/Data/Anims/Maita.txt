@@ -1,0 +1,10 @@
+//Format is: Spritesheet path, frame count, nr of cols, nr of rows and frames per sec, isPong, Anim name
+"Enemies/Maita/Run_Anim.png",4,2,2,8,false,"Run"
+"Enemies/Maita/RunAngry_Anim.png",4,4,1,16,false,"RunAngry"
+"Enemies/Maita/Attack_Anim.png",6,6,1,16,false,"Attack"
+"Enemies/Maita/AttackAngry_Anim.png",6,6,1,32,false,"AttackAngry"
+"Enemies/Maita/Bubble_Anim.png",3,3,1,8,true,"Bubble"
+"Enemies/Maita/Bubble_Anim_Alt.png",3,3,1,8,true,"Bubble_Alt"
+"Enemies/Maita/Bubble_Anim2.png",3,3,1,8,true,"Bubble2"
+"Enemies/Maita/Bubble_Anim3.png",3,3,1,8,true,"Bubble3"
+"Enemies/Maita/Death_Anim.png",4,4,1,8,false,"Death"

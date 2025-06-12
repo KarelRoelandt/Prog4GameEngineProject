@@ -34,8 +34,8 @@ void HighScoreState::Enter(Game* game)
     try
     {
         auto soundService = ServiceLocator::GetSoundService();
-        soundService->LoadMusic("Data/Sound/MainTheme.mp3");
-        soundService->PlayMusic("Data/Sound/MainTheme.mp3", 32, true); // Loop the music
+        soundService->LoadMusic("Sound/MainTheme.mp3");
+        soundService->PlayMusic("Sound/MainTheme.mp3", 32, true); // Loop the music
         std::cout << "[\033[33mDebug\033[0m] Playing background music\n";
     }
     catch (const std::exception& e)
@@ -186,7 +186,7 @@ void HighScoreState::Load(dae::Scene& scene)
     // Add background
     auto background = std::make_shared<dae::GameObject>();
     auto textureComponent = background->AddComponent<dae::TextureComponent>();
-    textureComponent->SetTexture("background.tga");
+    textureComponent->SetTexture("Branding/background.tga");
     textureComponent->SetSize(screenWidth, screenHeight);
     auto transformComponent = background->AddComponent<dae::TransformComponent>();
     transformComponent->SetPosition(0.0f, 0.0f);
@@ -195,7 +195,7 @@ void HighScoreState::Load(dae::Scene& scene)
 
     // Add title
     auto title = std::make_shared<dae::GameObject>();
-    auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 36);
+    auto font = dae::ResourceManager::GetInstance().LoadFont("Fonts/Lingua.otf", 36);
     title->AddComponent<dae::TextComponent>("HIGH SCORES", font);
     transformComponent = title->AddComponent<dae::TransformComponent>();
     transformComponent->SetPosition(400.0f, 100.0f);
@@ -206,7 +206,7 @@ void HighScoreState::Load(dae::Scene& scene)
     auto scores = LoadHighScores();
 
     // Add high scores from file
-    auto smallFont = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 24);
+    auto smallFont = dae::ResourceManager::GetInstance().LoadFont("Fonts/Pixel_NES.otf", 24);
 
     for (size_t i = 0; i < scores.size(); ++i)
     {

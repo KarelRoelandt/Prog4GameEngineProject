@@ -49,8 +49,8 @@ public:
         try
         {
             auto soundService = ServiceLocator::GetSoundService();
-            soundService->LoadMusic("Data/Sound/MainTheme.mp3");
-            soundService->PlayMusic("Data/Sound/MainTheme.mp3", 32, true); // Loop the music
+            soundService->LoadMusic("Sound/MainTheme.mp3");
+            soundService->PlayMusic("Sound/MainTheme.mp3", 32, true); // Loop the music
             std::cout << "[\033[33mDebug\033[0m] Playing background music\n";
         }
         catch (const std::exception& e)
@@ -133,7 +133,7 @@ private:
         // Add background
         auto background = std::make_shared<dae::GameObject>();
         auto textureComponent = background->AddComponent<dae::TextureComponent>();
-        textureComponent->SetTexture("background.tga");
+        textureComponent->SetTexture("Branding/background.tga");
         textureComponent->SetSize(screenWidth, screenHeight); // Set the size of the background texture
         auto transformComponent = background->AddComponent<dae::TransformComponent>();
         transformComponent->SetPosition(0, 0);

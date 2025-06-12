@@ -18,4 +18,7 @@ public:
     virtual void PauseMusic() = 0;
     virtual void ResumeMusic() = 0;
     virtual bool IsMusicPlaying() = 0;
+
+    // Add the Shutdown method to the interface
+    virtual void Shutdown() = 0;
 };

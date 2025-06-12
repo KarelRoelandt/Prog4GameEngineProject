@@ -14,4 +14,7 @@ public:
     void PauseMusic() override {}
     void ResumeMusic() override {}
     bool IsMusicPlaying() override { return false; }
+
+    // Add the Shutdown method to the interface
+    virtual void Shutdown() override {};
 };

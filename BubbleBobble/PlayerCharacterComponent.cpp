@@ -33,8 +33,8 @@ namespace dae
         {
             healthComponent->TakeDamage(amount);
 
-            m_pSoundService->LoadSound("Data/Sound/KillEnemy.wav");
-            m_pSoundService->OutputSound("Data/Sound/KillEnemy.wav", 64);
+            m_pSoundService->LoadSound("Sound/KillEnemy.wav");
+            m_pSoundService->OutputSound("Sound/KillEnemy.wav", 64);
         }
     }
 
@@ -46,8 +46,8 @@ namespace dae
         {
             scoreComponent->AddScore(points);
 
-            m_pSoundService->LoadSound("Data/Sound/GetFruit.wav");
-            m_pSoundService->OutputSound("Data/Sound/GetFruit.wav", 64);
+            m_pSoundService->LoadSound("Sound/GetFruit.wav");
+            m_pSoundService->OutputSound("Sound/GetFruit.wav", 64);
         }
     }
 

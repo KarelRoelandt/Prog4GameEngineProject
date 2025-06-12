@@ -4,6 +4,7 @@
 #include "TextureComponent.h"
 #include "TransformComponent.h"
 #include "Renderer.h"
+#include "TextComponent.h"
 
 namespace dae
 {
@@ -22,30 +23,39 @@ namespace dae
         void Render() const override
         {
             auto owner = GetOwner();
+            if (!owner) return; // Safety check for null owner
+
             glm::vec2 objectPosition{};
             if (owner->HasComponent<TransformComponent>())
             {
                 auto transformComponent = owner->GetComponent<TransformComponent>();
-                objectPosition = transformComponent->GetPosition();
+                if (transformComponent) // Ensure component exists
+                    objectPosition = transformComponent->GetPosition();
             }
 
             if (owner->HasComponent<TextureComponent>())
             {
                 auto textureComponent = owner->GetComponent<TextureComponent>();
-                const auto& texture = textureComponent->GetTexture();
-                if (texture)
+                if (textureComponent) // Ensure component exists
                 {
-                    Renderer::GetInstance().RenderTexture(*texture, objectPosition.x, objectPosition.y, textureComponent->GetSize().x, textureComponent->GetSize().y);
+                    auto texture = textureComponent->GetTexture(); // Value not reference
+                    if (texture)
+                    {
+                        Renderer::GetInstance().RenderTexture(*texture, objectPosition.x, objectPosition.y, textureComponent->GetSize().x, textureComponent->GetSize().y);
+                    }
                 }
             }
 
             if (owner->HasComponent<TextComponent>())
             {
                 auto textComponent = owner->GetComponent<TextComponent>();
-                const auto& texture = textComponent->GetTexture();
-                if (texture)
+                if (textComponent) // Ensure component exists
                 {
-                    Renderer::GetInstance().RenderTexture(*texture, objectPosition.x, objectPosition.y);
+                    auto texture = textComponent->GetTexture(); // Value not reference
+                    if (texture)
+                    {
+                        Renderer::GetInstance().RenderTexture(*texture, objectPosition.x, objectPosition.y);
+                    }
                 }
             }
 

@@ -163,6 +163,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BaseGameplayState.cpp" />
     <ClCompile Include="BubbleBobble.cpp" />
     <ClCompile Include="FPSComponent.cpp" />
     <ClCompile Include="HealthComponent.cpp" />
@@ -172,13 +173,16 @@
     <ClCompile Include="RotationComponent.cpp" />
     <ClCompile Include="ScoreComponent.cpp" />
     <ClCompile Include="ScoreDisplay.cpp" />
+    <ClCompile Include="SinglePlayerState.cpp" />
+    <ClCompile Include="TwoPlayerCoopState.cpp" />
+    <ClCompile Include="VersusState.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BaseGameplayState.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="ExampleComponent.h" />
     <ClInclude Include="FPSComponent.h" />
     <ClInclude Include="Game.h" />
-    <ClInclude Include="GameplayState.h" />
     <ClInclude Include="GameState.h" />
     <ClInclude Include="HealthComponent.h" />
     <ClInclude Include="HealthDisplay.h" />
@@ -187,10 +191,10 @@
     <ClInclude Include="Observer.h" />
     <ClInclude Include="PlayerCharacterComponent.h" />
     <ClInclude Include="PlayerCommands.h" />
-    <ClInclude Include="RenderComponent.h" />
     <ClInclude Include="RotationComponent.h" />
     <ClInclude Include="ScoreComponent.h" />
     <ClInclude Include="ScoreDisplay.h" />
+    <ClInclude Include="SinglePlayerState.h" />
     <ClInclude Include="StartGameCommand.h" />
     <ClInclude Include="StartMenuState.h" />
     <ClInclude Include="Subject.h" />

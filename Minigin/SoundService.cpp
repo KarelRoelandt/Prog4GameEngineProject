@@ -1,5 +1,6 @@
 // SoundService.cpp
 #include "SoundService.h"
+
 #include <SDL_mixer.h>
 #include <thread>
 #include <queue>
@@ -8,6 +9,9 @@
 #include <unordered_map>
 #include <atomic>
 #include <iostream>
+#include <memory>
+
+#include "ResourceManager.h"
 
 enum class SoundRequestType { LoadSound, PlaySound, LoadMusic, PlayMusic, StopMusic, PauseMusic, ResumeMusic };
 
@@ -32,41 +36,47 @@ public:
         // Allow 16 sound channels for effects
         Mix_AllocateChannels(16);
 
+        m_basePath = dae::ResourceManager::GetInstance().GetDataPath();
+
         m_Worker = std::thread(&Impl::ProcessQueue, this);
     }
 
     ~Impl()
     {
+        // First set the stop flag to true
         {
             std::lock_guard<std::mutex> lock(m_Mutex);
             m_Stop = true;
         }
-        m_CondVar.notify_one();
-        if (m_Worker.joinable()) m_Worker.join();
+
+        // Notify the worker thread to check the stop flag
+        m_CondVar.notify_all();
+
+        // Wait for the worker thread to finish
+        if (m_Worker.joinable())
+        {
+            m_Worker.join();
+        }
+
+        // Stop any playing music
+        if (Mix_PlayingMusic())
+        {
+            Mix_HaltMusic();
+        }
+
+        // Clear current music path
+        m_CurrentMusicPath.clear();
 
         // Free all sound chunks
-        for (auto& pair : m_SoundCache)
-        {
-            Mix_FreeChunk(pair.second);
-        }
+        m_SoundCache.clear();
 
-        // Free music
-        if (m_CurrentMusic)
-        {
-            Mix_FreeMusic(m_CurrentMusic);
-            m_CurrentMusic = nullptr;  // Set to nullptr after freeing
-        }
+        // Free music, including current music
+        m_CurrentMusic.reset();
 
-        // Clean up music cache, avoiding double-free
-			        for (auto& pair : m_MusicCache)
-        {
-            // Only free if it's not the current music (which was already freed)
-            if (pair.second != nullptr && pair.second != m_CurrentMusic)
-            {
-                Mix_FreeMusic(pair.second);
-            }
-        }
+        // Clean up music cache
+        m_MusicCache.clear();
 
+        // Close SDL_mixer
         Mix_CloseAudio();
     }
 
@@ -80,6 +90,9 @@ public:
     }
 
 private:
+
+    std::filesystem::path m_basePath;
+
     void ProcessQueue()
     {
         while (true)
@@ -130,15 +143,17 @@ private:
     {
         if (m_SoundCache.find(filePath) == m_SoundCache.end())
         {
-            auto* chunk = Mix_LoadWAV(filePath.c_str());
+            // Combine base path with the provided path
+            std::filesystem::path fullPath = m_basePath / filePath;
+            auto* chunk = Mix_LoadWAV(fullPath.string().c_str());
             if (chunk)
             {
-                m_SoundCache[filePath] = chunk;
-                std::cout << "[\033[33mDebug\033[0m] Sound loaded successfully: " << filePath << "\n";
+                m_SoundCache[filePath] = ChunkPtr(chunk, Mix_FreeChunk);
+                std::cout << "[\033[33mDebug\033[0m] Sound loaded successfully: " << fullPath.string() << "\n";
             }
             else
             {
-                std::cerr << "[\033[33mDebug\033[0m] Failed to load sound: " << filePath
+                std::cerr << "[\033[33mDebug\033[0m] Failed to load sound: " << fullPath.string()
                     << " - " << Mix_GetError() << std::endl;
             }
         }
@@ -152,8 +167,8 @@ private:
     {
         if (m_SoundCache.find(filePath) != m_SoundCache.end())
         {
-            Mix_VolumeChunk(m_SoundCache[filePath], volume);
-            Mix_PlayChannel(-1, m_SoundCache[filePath], 0);
+            Mix_VolumeChunk(m_SoundCache[filePath].get(), volume);
+            Mix_PlayChannel(-1, m_SoundCache[filePath].get(), 0);
             std::cout << "[\033[33mDebug\033[0m] Playing sound: " << filePath << " at volume: " << volume << std::endl;
         }
         else
@@ -166,15 +181,17 @@ private:
     {
         if (m_MusicCache.find(filePath) == m_MusicCache.end())
         {
-            auto* music = Mix_LoadMUS(filePath.c_str());
+            // Combine base path with the provided path
+            std::filesystem::path fullPath = m_basePath / filePath;
+            auto* music = Mix_LoadMUS(fullPath.string().c_str());
             if (music)
             {
-                m_MusicCache[filePath] = music;
-                std::cout << "[\033[33mDebug\033[0m] Music loaded successfully: " << filePath << std::endl;
+                m_MusicCache[filePath] = MusicPtr(music, Mix_FreeMusic);
+                std::cout << "[\033[33mDebug\033[0m] Music loaded successfully: " << fullPath.string() << std::endl;
             }
             else
             {
-                std::cerr << "[\033[31mERROR\033[0m] Failed to load music: " << filePath
+                std::cerr << "[\033[31mERROR\033[0m] Failed to load music: " << fullPath.string()
                     << " - " << Mix_GetError() << std::endl;
             }
         }
@@ -199,7 +216,7 @@ private:
         if (m_MusicCache.find(filePath) != m_MusicCache.end())
         {
             Mix_VolumeMusic(volume);
-            Mix_PlayMusic(m_MusicCache[filePath], loop ? -1 : 1);
+            Mix_PlayMusic(m_MusicCache[filePath].get(), loop ? -1 : 1);
             m_CurrentMusicPath = filePath;
             m_CurrentMusic = m_MusicCache[filePath];
             std::cout << "[\033[33mDebug\033[0m] Playing music: " << filePath << " at volume: " << volume << (loop ? " (looping)" : "") << std::endl;
@@ -233,8 +250,12 @@ private:
         }
     }
 
-    std::unordered_map<std::string, Mix_Chunk*> m_SoundCache;
-    std::unordered_map<std::string, Mix_Music*> m_MusicCache;
+    // Use shared_ptr with custom deleter for audio resources
+    using ChunkPtr = std::shared_ptr<Mix_Chunk>;
+    using MusicPtr = std::shared_ptr<Mix_Music>;
+
+    std::unordered_map<std::string, ChunkPtr> m_SoundCache;
+    std::unordered_map<std::string, MusicPtr> m_MusicCache;
     std::queue<SoundRequest> m_Queue;
     std::mutex m_Mutex;
     std::condition_variable m_CondVar;
@@ -242,7 +263,7 @@ private:
     std::atomic<bool> m_Stop;
 
     // Music tracking
-    Mix_Music* m_CurrentMusic;
+    MusicPtr m_CurrentMusic;
     std::string m_CurrentMusicPath;
 };
 
@@ -288,4 +309,10 @@ void SoundService::ResumeMusic()
 bool SoundService::IsMusicPlaying()
 {
     return Mix_PlayingMusic() && !Mix_PausedMusic();
+}
+
+void SoundService::Shutdown()
+{
+    // Force clean shutdown by resetting the implementation
+    m_Impl.reset();
 }

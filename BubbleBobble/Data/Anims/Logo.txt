@@ -1,0 +1,2 @@
+//Format is: Spritesheet path, frame count, nr of cols, nr of rows and frames per sec, isPong, Anim name
+"HUD/Logo_Anim.png",6,6,1,16,true,"Anim"

@@ -1,0 +1,4 @@
+//Format is: Spritesheet path, frame count, nr of cols, nr of rows and frames per sec, isPong, Anim name
+"Items/Fries.png",1,1,1,1,false,"Fries"
+"Items/Watermelon.png",1,1,1,1,false,"Watermelon"
+"Items/Collect_Anim.png",3,3,1,16,false,"Collect"

@@ -4,6 +4,7 @@
 #include "Game.h"
 #include <iostream>
 #include "GameplayState.h"
+#include "SinglePlayerState.h"
 #include "InputManager.h"
 #include "Minigin.h"
 #include "SceneManager.h"
@@ -42,7 +43,7 @@ public:
             void Execute() override
             {
                 std::cout << "[\033[33mDebug\033[0m] StartGameCommand executed!\n";
-                m_Game->ChangeState(std::make_shared<GameplayState>());
+                m_Game->ChangeState(std::make_shared<SinglePlayerState>());
             }
         private:
             Game* m_Game;
@@ -131,15 +132,23 @@ public:
 
         auto background = std::make_shared<dae::GameObject>();
         auto textureComponent = background->AddComponent<dae::TextureComponent>();
-        textureComponent->SetTexture("background.tga");
+        textureComponent->SetTexture("Branding/background.tga");
         textureComponent->SetSize(screenWidth, screenHeight);
         auto transformComponent = background->AddComponent<dae::TransformComponent>();
         transformComponent->SetPosition(0, 0);
         background->AddComponent<dae::RenderComponent>();
         scene.Add(background);
 
+        auto splash = std::make_shared<dae::GameObject>();
+        auto splashTextureComponent = splash->AddComponent<dae::TextureComponent>();
+    	splashTextureComponent->SetTexture("HUD/Logo.png");
+    	splashTextureComponent->SetSize(screenWidth * .5f, screenHeight * .5f);
+        splash->GetTransform()->SetPosition(screenWidth / 2 - splashTextureComponent->GetSize().x / 2, screenHeight / 2 - splashTextureComponent->GetSize().y / 2);
+        splash->AddComponent<dae::RenderComponent>();
+        scene.Add(splash);
+
         auto text = std::make_shared<dae::GameObject>();
-        auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 36);
+        auto font = dae::ResourceManager::GetInstance().LoadFont("Fonts/Lingua.otf", 36);
         text->AddComponent<dae::TextComponent>("BUBBLE BOBBLE - START MENU", font);
         transformComponent = text->AddComponent<dae::TransformComponent>();
         transformComponent->SetPosition(200, 200);
@@ -147,7 +156,7 @@ public:
         scene.Add(text);
 
         auto pressKeyText = std::make_shared<dae::GameObject>();
-        auto smallFont = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 24);
+        auto smallFont = dae::ResourceManager::GetInstance().LoadFont("Fonts/Lingua.otf", 24);
         pressKeyText->AddComponent<dae::TextComponent>("PRESS P TO START", smallFont);
         transformComponent = pressKeyText->AddComponent<dae::TransformComponent>();
         transformComponent->SetPosition(200, 300);

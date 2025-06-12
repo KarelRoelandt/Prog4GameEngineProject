@@ -1,0 +1,2 @@
+//Format is: Spritesheet path, frame count, nr of cols, nr of rows and frames per sec, isPong, Anim name
+"Player/Bobby/Burn_Anim.png",14,14,1,8,false,"Burn"

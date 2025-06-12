@@ -15,7 +15,7 @@ dae::Minigin* g_Engine = nullptr;
 int main(int, char* [])
 {
     // Initialize engine once at the application level
-    dae::Minigin engine("../Data/");
+    dae::Minigin engine("../BubbleBobble/Data/");
     //engine.Initialize("");
 
     // Store engine reference in a globally accessible way
@@ -32,6 +32,9 @@ int main(int, char* [])
             // Just set up any one-time initialization here
             std::cout << "[\033[33mDebug\033[0m] Engine initialization complete\n";
         });
+
+    // Shutdown sound service before engine cleanup
+    ServiceLocator::GetSoundService()->Shutdown();
 
     // Cleanup engine at the end
     engine.Cleanup();

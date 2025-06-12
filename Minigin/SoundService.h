@@ -20,6 +20,8 @@ public:
     void ResumeMusic() override;
     bool IsMusicPlaying() override;
 
+    void Shutdown();
+
 private:
     class Impl;
     std::unique_ptr<Impl> m_Impl;
