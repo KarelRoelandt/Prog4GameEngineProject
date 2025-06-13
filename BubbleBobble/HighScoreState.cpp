@@ -174,6 +174,7 @@ void HighScoreState::Load(dae::Scene& scene)
     auto title = std::make_shared<dae::GameObject>();
     auto font = dae::ResourceManager::GetInstance().LoadFont("Fonts/Pixel_NES.otf", 36);
     title->AddComponent<dae::TextComponent>("HIGH SCORE TABLE", font);
+	title->GetComponent<dae::TextComponent>()->SetColor({ 255, 255, 0, 255 });
     title->GetTransform()->SetPosition(centerX - title->GetComponent<dae::TextComponent>()->GetSize().x / 2, 100.0f);
     title->AddComponent<dae::RenderComponent>();
     scene.Add(title);

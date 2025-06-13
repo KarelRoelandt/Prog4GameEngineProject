@@ -4,6 +4,7 @@
 #include "Font.h"
 #include "Texture2D.h"
 #include <memory>
+#include <SDL_pixels.h>
 #include <string>
 #include "CustomDefs.h"
 
@@ -24,16 +25,26 @@ namespace dae
         void Render() const override;
 
         void SetText(const std::string& text);
+        void SetColor(const SDL_Color& color) { m_color = color; m_needsUpdate = true; }
         Vector2 GetSize() const;
 
         std::shared_ptr<Texture2D> GetTexture() const;
 
     private:
-        bool m_needsUpdate;
-        std::string m_text;
-        Vector2 m_position{ 0, 0 };
-        Vector2 m_size{ 0, 0 };
         std::shared_ptr<Font> m_font;
         std::shared_ptr<Texture2D> m_textTexture;
+
+        std::string m_text;
+        Vector2 m_size{ 0, 0 };
+        SDL_Color m_color{ 255, 255, 255, 255 };
+
+
+        //Vector2 m_position{ 0, 0 };
+        
+
+        
+
+        bool m_needsUpdate;
+
     };
 }
