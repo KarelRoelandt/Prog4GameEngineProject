@@ -16,28 +16,22 @@
 #include "ScoreComponent.h"
 #include "TextComponent.h" 
 #include "HealthDisplay.h"
+#include "PlayerRunState.h"
 #include "ScoreDisplay.h"
 #include "ResourceManager.h"
+#include "StateMachineComponent.h"
+
 
 LevelParser::LevelParser()
     : m_currentPlayerNumber(1)
     , m_BigTileTexturePath("Levels/1/Big.png")
     , m_SmallTileTexturePath("Levels/1/Small.png")
-    , m_Player1TexturePath("Sprites/Bub.png")
-    , m_Player2TexturePath("Sprites/Bob.png")
+    , m_Player1TexturePath("Player/Bubby/Run_Anim.png")
+    , m_Player2TexturePath("Player/Bobby/Run_Anim.png")
     , m_ZenChanTexturePath("Enemies/ZenChan/Run_Anim.png")
 {
-
     m_offsetX = (m_windowWidth - m_gameAreaWidth) / 2;          // WINDOWS % factor niet in meegerekend
 	m_offsetY = (m_windowHeight - m_gameAreaHeight) / 2;
-
-    std::cout << "[LevelParser] Initialized with screen dimensions: "
-        << BaseGameplayState::SCREEN_WIDTH << "x" << BaseGameplayState::SCREEN_HEIGHT << "." << "\n";
-    std::cout << "[LevelParser] Game Area Width for centering: " << m_gameAreaWidth << "\n";
-    std::cout << "[LevelParser] HUD Height (m_hudHeight from .h): " << m_hudHeight << "\n";
-    std::cout << "[LevelParser] Game Grid Height (for content below HUD): " << m_gameGridHeight
-        << " (calculated from m_gameAreaBaseHeight: " << m_gameAreaHeight
-        << " and m_hudHeight: " << m_hudHeight << "px)" << "\n";
 }
 
 void LevelParser::SetDynamicElementDimensions(float playerW, float playerH, float zenChanW, float zenChanH)
@@ -151,43 +145,47 @@ void LevelParser::ParsePlayer(dae::Scene& scene, const std::string& lineData, bo
 
     auto player = std::make_shared<dae::GameObject>();
     player->SetName("Player" + std::to_string(m_currentPlayerNumber));
-    // Uses the m_offsetY calculated from raw file Y bounds
-    player->GetTransform()->SetPosition(x_file + m_offsetX, y_file + m_offsetY);
-
     auto textureComp = player->AddComponent<dae::TextureComponent>();
     textureComp->SetTexture(m_currentPlayerNumber == 1 ? m_Player1TexturePath : m_Player2TexturePath);
     textureComp->SetRenderSize(m_playerWidth, m_playerHeight);
+
+    player->GetTransform()->SetPosition(x_file + m_offsetX, y_file + m_offsetY + 24);
+
     player->AddComponent<dae::RenderComponent>();
-    auto playerComponent = player->AddComponent<dae::PlayerCharacterComponent>(100.0f);
-    playerComponent->BindInputs(isKeyboard, m_currentPlayerNumber);
+
+    player->AddComponent<dae::PlayerCharacterComponent>(100.0f)->BindInputs(isKeyboard, m_currentPlayerNumber);
+    
     auto healthComponent = player->AddComponent<dae::HealthComponent>(player.get(), 3);
     auto scoreComponent = player->AddComponent<dae::ScoreComponent>(player.get(), 0);
+
+    auto stateMachine = player->AddComponent<dae::StateMachineComponent>();
+    stateMachine->ChangeState(std::make_unique<PlayerRunState>());
+
     scene.Add(player);
 
-    auto font = dae::ResourceManager::GetInstance().LoadFont("Fonts/Lingua.otf", 16);
-    if (!font) { std::cerr << "[LevelParser] Error: Could not load font for player UI." << "\n"; }
-    else
-    {
-        float uiYPos1_lives = 10.f;
-        float uiYPos2_score = 28.f;
-        auto healthDisplayObject = std::make_shared<dae::GameObject>();
-        healthDisplayObject->SetName(player->GetName() + "HealthDisplay");
-        healthDisplayObject->GetTransform()->SetPosition(m_currentPlayerNumber == 1 ? 10.f : m_gameAreaWidth - 150.f, uiYPos1_lives);
-        auto healthText = healthDisplayObject->AddComponent<dae::TextComponent>("Lives: 3", font);
-        healthDisplayObject->AddComponent<dae::RenderComponent>();
-        auto healthDisplay = healthDisplayObject->AddComponent<dae::HealthDisplay>(healthDisplayObject.get(), healthText);
-        healthComponent->AddObserver(healthDisplay.get());
-        scene.Add(healthDisplayObject);
 
-        auto scoreDisplayObject = std::make_shared<dae::GameObject>();
-        scoreDisplayObject->SetName(player->GetName() + "ScoreDisplay");
-        scoreDisplayObject->GetTransform()->SetPosition(m_currentPlayerNumber == 1 ? 10.f : m_gameAreaWidth - 150.f, uiYPos2_score);
-        auto scoreText = scoreDisplayObject->AddComponent<dae::TextComponent>("Score: 0", font);
-        scoreDisplayObject->AddComponent<dae::RenderComponent>();
-        auto scoreDisplay = scoreDisplayObject->AddComponent<dae::ScoreDisplay>(scoreDisplayObject.get(), scoreText);
-        scoreComponent->AddObserver(scoreDisplay.get());
-        scene.Add(scoreDisplayObject);
-    }
+    auto font = dae::ResourceManager::GetInstance().LoadFont("Fonts/Lingua.otf", 24);
+
+    float uiYPos1_lives = 10.f;
+    float uiYPos2_score = 28.f;
+    auto healthDisplayObject = std::make_shared<dae::GameObject>();
+    healthDisplayObject->SetName(player->GetName() + "HealthDisplay");
+    healthDisplayObject->GetTransform()->SetPosition(m_currentPlayerNumber == 1 ? 10.f : m_gameAreaWidth - 150.f, uiYPos1_lives);
+    auto healthText = healthDisplayObject->AddComponent<dae::TextComponent>("Lives: 3", font);
+    healthDisplayObject->AddComponent<dae::RenderComponent>();
+    auto healthDisplay = healthDisplayObject->AddComponent<dae::HealthDisplay>(healthDisplayObject.get(), healthText);
+    healthComponent->AddObserver(healthDisplay.get());
+    scene.Add(healthDisplayObject);
+
+    auto scoreDisplayObject = std::make_shared<dae::GameObject>();
+    scoreDisplayObject->SetName(player->GetName() + "ScoreDisplay");
+    scoreDisplayObject->GetTransform()->SetPosition(m_currentPlayerNumber == 1 ? 10.f : m_gameAreaWidth - 150.f, uiYPos2_score);
+    auto scoreText = scoreDisplayObject->AddComponent<dae::TextComponent>("Score: 0", font);
+    scoreDisplayObject->AddComponent<dae::RenderComponent>();
+    auto scoreDisplay = scoreDisplayObject->AddComponent<dae::ScoreDisplay>(scoreDisplayObject.get(), scoreText);
+    scoreComponent->AddObserver(scoreDisplay.get());
+    scene.Add(scoreDisplayObject);
+
     m_currentPlayerNumber++;
 }
 
@@ -197,10 +195,12 @@ void LevelParser::ParseZenChan(dae::Scene& scene, const std::string& lineData)
     if (parts.size() != 2) { std::cerr << "[LevelParser] Error: Malformed ZenChan data: " << lineData << "\n"; return; }
     float x_file = std::stof(parts[0]);
     float y_file = std::stof(parts[1]);
+
     auto enemy = std::make_shared<dae::GameObject>();
     enemy->SetName("ZenChan");
-    // Uses the m_offsetY calculated from raw file Y bounds
-    enemy->GetTransform()->SetPosition(x_file + m_offsetX, y_file + m_offsetY);
+    
+    enemy->GetTransform()->SetPosition(x_file + m_offsetX, y_file + m_offsetY + 96 );
+
     auto textureComp = enemy->AddComponent<dae::TextureComponent>();
     textureComp->SetTexture(m_ZenChanTexturePath);
     textureComp->SetRenderSize(m_zenChanWidth, m_zenChanHeight);

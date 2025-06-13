@@ -23,6 +23,7 @@ void SinglePlayerState::Enter(Game* game)
 {
     std::cout << "[SinglePlayerState] Enter called." << "\n";
     BaseGameplayState::Enter(game); // This should call SetupPlayers via the virtual mechanism
+
     // and set up the "Gameplay" scene.
     std::cout << "[SinglePlayerState] BaseGameplayState::Enter finished." << "\n";
 }
@@ -74,7 +75,7 @@ void SinglePlayerState::SetupPlayers(dae::Scene& scene)
     std::cout << "[SinglePlayerState::SetupPlayers] Attempting to load level using LevelParser with dynamic path: '" << levelFilePath << "'" << "\n";
 
     // Load the level using LevelParser
-    bool loadResult = m_LevelParser.LoadLevel(scene, levelFilePath, true);
+    bool loadResult = m_LevelParser.LoadLevel(scene, levelFilePath, true); 
     if (!loadResult)
     {
         std::cerr << "[SinglePlayerState::SetupPlayers] CRITICAL ERROR: LevelParser::LoadLevel failed for file: '" << levelFilePath << "'" << "\n";
@@ -83,6 +84,8 @@ void SinglePlayerState::SetupPlayers(dae::Scene& scene)
     {
         std::cout << "[SinglePlayerState::SetupPlayers] LevelParser::LoadLevel succeeded for file: '" << levelFilePath << "'" << "\n";
     }
+
+
 
     std::cout << "[SinglePlayerState::SetupPlayers] Finished." << "\n";
 }
