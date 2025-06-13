@@ -21,6 +21,8 @@
 #include "ResourceManager.h"
 #include "StateMachineComponent.h"
 
+#include "PlayerIdleState.h"
+
 
 LevelParser::LevelParser()
     : m_currentPlayerNumber(1)
@@ -159,7 +161,7 @@ void LevelParser::ParsePlayer(dae::Scene& scene, const std::string& lineData, bo
     auto scoreComponent = player->AddComponent<dae::ScoreComponent>(player.get(), 0);
 
     auto stateMachine = player->AddComponent<dae::StateMachineComponent>();
-    //stateMachine->ChangeState(std::make_unique<PlayerRunState>());
+    stateMachine->ChangeState(std::make_unique<PlayerIdleState>());
 
     scene.Add(player);
 

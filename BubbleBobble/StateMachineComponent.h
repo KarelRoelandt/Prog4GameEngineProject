@@ -1,4 +1,4 @@
-// Minigin/StateMachineComponent.h
+	// Minigin/StateMachineComponent.h
 #pragma once
 #include <memory>
 #include "BaseComponent.h"

@@ -3,39 +3,34 @@
 #include "GameObject.h"
 #include "TransformComponent.h"
 #include "InputManager.h"
-#include "Controller.h" // Include Controller.h to get access to the GamepadButton enum
+#include "Controller.h"
 #include "HealthComponent.h"
 #include "ScoreComponent.h"
 #include "StateMachineComponent.h"
 #include "PlayerRunState.h"
-
+#include "PlayerIdleState.h"
 #include "ServiceLocator.h"
+#include <algorithm>
 
 namespace dae
 {
     PlayerCharacterComponent::PlayerCharacterComponent(GameObject* owner, float speed)
         : BaseComponent(owner)
         , m_Speed(speed)
-        , m_MovingLeft(false)
-        , m_MovingRight(false)
-        , m_MovingUp(false)
-        , m_MovingDown(false)
+        , m_Direction(0.0f, 0.0f)
         , m_pSoundService(ServiceLocator::GetSoundService())
         , m_pStateMachine(nullptr)
     {
-        // Get the transform component as a raw pointer
         auto transformPtr = GetOwner()->GetComponent<TransformComponent>();
-        m_pTransform = transformPtr.get();  // Use .get() to convert from shared_ptr to raw pointer
+        m_pTransform = transformPtr.get();
     }
 
     void PlayerCharacterComponent::DoDamage(int amount)
     {
-        // Find the HealthComponent in the game object
         auto healthComponent = GetOwner()->GetComponent<HealthComponent>();
         if (healthComponent)
         {
             healthComponent->TakeDamage(amount);
-
             m_pSoundService->LoadSound("Sound/KillEnemy.wav");
             m_pSoundService->OutputSound("Sound/KillEnemy.wav", 64);
         }
@@ -43,12 +38,10 @@ namespace dae
 
     void PlayerCharacterComponent::AddScore(int points)
     {
-        // Find the ScoreComponent in the game object
         auto scoreComponent = GetOwner()->GetComponent<ScoreComponent>();
         if (scoreComponent)
         {
             scoreComponent->AddScore(points);
-
             m_pSoundService->LoadSound("Sound/GetFruit.wav");
             m_pSoundService->OutputSound("Sound/GetFruit.wav", 64);
         }
@@ -58,10 +51,7 @@ namespace dae
     {
         if (glm::length(m_Direction) > 0.1f)
         {
-            // Normalize direction vector if it's not zero
             glm::vec2 normalizedDir = glm::normalize(m_Direction);
-
-            // Update position using the transform component
             if (m_pTransform)
             {
                 glm::vec2 position = m_pTransform->GetPosition();
@@ -77,61 +67,51 @@ namespace dae
         // Empty implementation or debug rendering if needed
     }
 
-    void PlayerCharacterComponent::Move(float x, float /*y*/)
+    void PlayerCharacterComponent::Move(float x, float y)
     {
-        if (x < 0) m_MovingLeft = true;
-        else if (x > 0) m_MovingRight = true;
+        m_Direction.x += x;
+        m_Direction.y += y;
 
-        //if (y < 0) m_MovingUp = true;
-        //else if (y > 0) m_MovingDown = true;
+        // Clamp direction to [-1, 1] for each axis
+        m_Direction.x = std::clamp(m_Direction.x, -1.0f, 1.0f);
+        m_Direction.y = std::clamp(m_Direction.y, -1.0f, 1.0f);
 
-        UpdateDirection();
-
-        // Only set state to PlayerRunState if not already in it
-        if (x != 0.0f) {
-            EnsureStateMachine();
-            if (m_pStateMachine && !IsInRunState()) {
-                m_pStateMachine->ChangeState(std::make_unique<PlayerRunState>());
-            }
+        EnsureStateMachine();
+        if (m_pStateMachine &&
+            (!m_pStateMachine->GetCurrentState() ||
+                typeid(*m_pStateMachine->GetCurrentState()) != typeid(PlayerRunState)))
+        {
+            m_pStateMachine->ChangeState(std::make_unique<PlayerRunState>());
         }
     }
 
-    void PlayerCharacterComponent::StopMove(float x, float /*y*/)
+    void PlayerCharacterComponent::StopMove(float x, float y)
     {
-        if (x < 0) m_MovingLeft = false;
-        else if (x > 0) m_MovingRight = false;
+        m_Direction.x -= x;
+        m_Direction.y -= y;
 
-        //if (y < 0) m_MovingUp = false;
-        //else if (y > 0) m_MovingDown = false;
+        // Clamp direction to [-1, 1] for each axis
+        m_Direction.x = std::clamp(m_Direction.x, -1.0f, 1.0f);
+        m_Direction.y = std::clamp(m_Direction.y, -1.0f, 1.0f);
 
-        UpdateDirection();
-    }
-
-    void PlayerCharacterComponent::UpdateDirection()
-    {
-        m_Direction = { 0.0f, 0.0f };
-
-        if (m_MovingLeft) m_Direction.x -= 1.0f;
-        if (m_MovingRight) m_Direction.x += 1.0f;
-        if (m_MovingUp) m_Direction.y -= 1.0f;
-        if (m_MovingDown) m_Direction.y += 1.0f;
+        EnsureStateMachine();
+        if (m_pStateMachine &&
+            (!m_pStateMachine->GetCurrentState() ||
+                typeid(*m_pStateMachine->GetCurrentState()) != typeid(PlayerIdleState)))
+        {
+            // Only go idle if not moving
+            if (glm::length(m_Direction) < 0.1f)
+                m_pStateMachine->ChangeState(std::make_unique<PlayerIdleState>());
+        }
     }
 
     void PlayerCharacterComponent::EnsureStateMachine()
     {
-        if (!m_pStateMachine) {
+        if (!m_pStateMachine)
+        {
             auto sm = GetOwner()->GetComponent<dae::StateMachineComponent>();
             m_pStateMachine = sm ? sm.get() : nullptr;
         }
-    }
-
-    // Helper to check if the current state is PlayerRunState
-    bool PlayerCharacterComponent::IsInRunState() const
-    {
-        if (!m_pStateMachine) return false;
-        auto* state = m_pStateMachine->GetCurrentState();
-        // Compare type using RTTI
-        return dynamic_cast<PlayerRunState*>(state) != nullptr;
     }
 
     void PlayerCharacterComponent::BindInputs(bool isKeyboard, int /*controllerIdx*/)
@@ -141,47 +121,22 @@ namespace dae
 
         if (isKeyboard)
         {
-            // Keyboard bindings
-            // Pressing keys (movement)
-            inputManager.BindCommand(SDLK_w, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 0.0f, -1.0f));
             inputManager.BindCommand(SDLK_a, InputState::Down, std::make_shared<MoveCommand>(sharedThis, -1.0f, 0.0f));
-            inputManager.BindCommand(SDLK_s, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 0.0f, 1.0f));
             inputManager.BindCommand(SDLK_d, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 1.0f, 0.0f));
-
-            // Releasing keys (stop movement)
-            inputManager.BindCommand(SDLK_w, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 0.0f, -1.0f));
             inputManager.BindCommand(SDLK_a, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, -1.0f, 0.0f));
-            inputManager.BindCommand(SDLK_s, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 0.0f, 1.0f));
             inputManager.BindCommand(SDLK_d, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 1.0f, 0.0f));
-
-            // Add the C key binding for damage
             inputManager.BindCommand(SDLK_c, InputState::Pressed, std::make_shared<DamageCommand>(sharedThis, 1));
-
-            // Add score key bindings
             inputManager.BindCommand(SDLK_z, InputState::Pressed, std::make_shared<ScoreCommand>(sharedThis, 10));
             inputManager.BindCommand(SDLK_x, InputState::Pressed, std::make_shared<ScoreCommand>(sharedThis, 100));
         }
         else
         {
-            // Controller bindings
-            // Pressing d-pad (movement)
-            inputManager.BindControllerCommand(GamepadButton::DPadUp, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 0.0f, -1.0f));
             inputManager.BindControllerCommand(GamepadButton::DPadLeft, InputState::Down, std::make_shared<MoveCommand>(sharedThis, -1.0f, 0.0f));
-            inputManager.BindControllerCommand(GamepadButton::DPadDown, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 0.0f, 1.0f));
             inputManager.BindControllerCommand(GamepadButton::DPadRight, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 1.0f, 0.0f));
-
-            // Releasing d-pad (stop movement)
-            inputManager.BindControllerCommand(GamepadButton::DPadUp, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 0.0f, -1.0f));
             inputManager.BindControllerCommand(GamepadButton::DPadLeft, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, -1.0f, 0.0f));
-            inputManager.BindControllerCommand(GamepadButton::DPadDown, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 0.0f, 1.0f));
             inputManager.BindControllerCommand(GamepadButton::DPadRight, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 1.0f, 0.0f));
-
-            // Add controller button binding for damage and score
             inputManager.BindControllerCommand(GamepadButton::ButtonX, InputState::Pressed, std::make_shared<DamageCommand>(sharedThis, 1));
             inputManager.BindControllerCommand(GamepadButton::ButtonY, InputState::Pressed, std::make_shared<ScoreCommand>(sharedThis, 10));
-            //inputManager.BindControllerCommand(GamepadButton::ButtonB, InputState::Pressed, std::make_shared<ScoreCommand>(sharedThis, 100));
-
-
         }
     }
 }

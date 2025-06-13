@@ -51,8 +51,6 @@ namespace dae
 
         void EnsureStateMachine(); // Helper to cache state machine
 
-        // Add this helper to check if currently in PlayerRunState
-        bool IsInRunState() const;
     };
 
 
