@@ -45,15 +45,15 @@ namespace dae
         {
             auto transformPtr = GetOwner()->GetComponent<TransformComponent>();
             if (transformPtr) m_pTransform = transformPtr.get();
-            else std::cerr << "[PCC::Constructor] Owner missing TransformComponent." << "\n";
+            else std::cout << "[PCC::Constructor] Owner missing TransformComponent." << "\n";
 
             auto colliderPtr = GetOwner()->GetComponent<BoxCollisionComponent>();
             if (colliderPtr) m_pPlayerCollider = colliderPtr.get();
-            else std::cerr << "[PCC::Constructor] Owner missing BoxCollisionComponent." << "\n";
+            else std::cout << "[PCC::Constructor] Owner missing BoxCollisionComponent." << "\n";
         }
         else
         {
-            std::cerr << "[PCC::Constructor] Owner GameObject is null." << "\n";
+            std::cout << "[PCC::Constructor] Owner GameObject is null." << "\n";
         }
         EnsureStateMachine();
     }
@@ -130,7 +130,7 @@ namespace dae
 
 
 
-    void dae::PlayerCharacterComponent::HandleCollisions(float deltaTime)
+    void dae::PlayerCharacterComponent::HandleCollisions(float /*deltaTime*/)
     {
         if (!GetOwner() || !m_pPlayerCollider || !m_pTransform)
         {
@@ -212,9 +212,15 @@ namespace dae
                         collisionResolvedThisIteration = true;
                     }
 
-                    if (overlapY > 0.001f && (!resolvedHorizontally || overlapY < overlapX))
+                    float epsilonResting = 0.5f; // Slightly larger epsilon for resting checks
+                    bool restingOnBigTileTop = (!resolvedHorizontally && m_VerticalVelocity <= 0.f && // Not moving down significantly
+                        (playerAABB.GetBottom() >= otherAABB.GetTop() - epsilonResting && playerAABB.GetBottom() <= otherAABB.GetTop() + epsilonResting) && // Feet near top
+                        (playerAABB.GetLeft() < otherAABB.GetRight() - epsilonResting && playerAABB.GetRight() > otherAABB.GetLeft() + epsilonResting) && // Horizontal overlap
+                        playerAABB.GetTop() < otherAABB.GetTop()); // Player is above
+
+                    if ((overlapY > 0.001f && (!resolvedHorizontally || overlapY < overlapX)) || restingOnBigTileTop)
                     {
-                        if (deltaY > 0)
+                        if (deltaY > 0 && !restingOnBigTileTop)
                         {
                             resolvedPosition.y = currentPosition.y + overlapY;
                             if (m_VerticalVelocity < 0) m_VerticalVelocity = 0;
@@ -233,35 +239,49 @@ namespace dae
                 }
                 else if (otherTag == ColliderTag::SMALL_TILE)
                 {
-                    if (m_VerticalVelocity > 0.f && deltaTime > 0.f)
+                    bool landedOnSmallTileThisIteration = false;
+                    glm::vec2 smallTileResolvedPosition = currentPosition;
+                    float onTopEpsilon = 0.5f; // Epsilon for "on top" checks; 0.5 might be more robust than 0.1 for float issues
+
+                    bool horizontalOverlap = (playerAABB.GetLeft() < otherAABB.GetRight() - onTopEpsilon &&
+                        playerAABB.GetRight() > otherAABB.GetLeft() + onTopEpsilon);
+
+                    if (horizontalOverlap)
                     {
-                        float verticalMovementThisFrame = m_VerticalVelocity * deltaTime;
-                        float playerFeetPreviousFrame = playerAABB.GetBottom() - verticalMovementThisFrame;
-                        float tileTop = otherAABB.GetTop();
-                        float epsilon = 0.1f;
+                        if (m_VerticalVelocity > 0.f)
+                        { // Player is falling
+// Player is coming from above AND their feet are now at or have slightly passed the tile's top surface.
+                            if (playerAABB.GetTop() < otherAABB.GetTop() &&
+                                playerAABB.GetBottom() >= otherAABB.GetTop() - onTopEpsilon)
+                            {
 
-                        bool horizontalOverlap = (playerAABB.GetLeft() < otherAABB.GetRight() - epsilon &&
-                            playerAABB.GetRight() > otherAABB.GetLeft() + epsilon);
+                                smallTileResolvedPosition.y = otherAABB.GetTop() - playerAABB.height;
+                                m_VerticalVelocity = 0.0f;
+                                landedOnSmallTileThisIteration = true;
+                            }
+                        }
+                        else
+                        { // m_VerticalVelocity <= 0.f (Player is stationary or moving up)
+                                         // Player's feet are very close to the tile's top surface, and player is generally above the tile.
+                            bool feetAreCorrectlyPositioned = (playerAABB.GetBottom() >= otherAABB.GetTop() - onTopEpsilon &&
+                                playerAABB.GetBottom() <= otherAABB.GetTop() + onTopEpsilon);
+                            bool playerIsAboveTile = playerAABB.GetTop() < otherAABB.GetTop();
 
-                        if (horizontalOverlap && playerFeetPreviousFrame <= tileTop + epsilon && playerAABB.GetBottom() >= tileTop - epsilon)
-                        {
-                            resolvedPosition.y = tileTop - playerAABB.height;
-                            m_VerticalVelocity = 0.0f;
-                            landedThisFrame = true;
-                            collisionResolvedThisIteration = true;
+                            if (feetAreCorrectlyPositioned && playerIsAboveTile)
+                            {
+                                smallTileResolvedPosition.y = otherAABB.GetTop() - playerAABB.height;
+                                m_VerticalVelocity = 0.0f;
+                                landedOnSmallTileThisIteration = true;
+                            }
                         }
                     }
-                    else if (m_VerticalVelocity <= 0.f && overlapY > 0.001f)
+
+                    if (landedOnSmallTileThisIteration)
                     {
-                        bool horizontalOverlap = (playerAABB.GetLeft() < otherAABB.GetRight() - 0.1f &&
-                            playerAABB.GetRight() > otherAABB.GetLeft() + 0.1f);
-                        if (horizontalOverlap && playerAABB.GetBottom() >= otherAABB.GetTop() - 0.1f && deltaY < 0)
-                        {
-                            resolvedPosition.y = otherAABB.GetTop() - playerAABB.height;
-                            m_VerticalVelocity = 0.0f;
-                            landedThisFrame = true;
-                            collisionResolvedThisIteration = true;
-                        }
+                        landedThisFrame = true;
+                        resolvedPosition.y = smallTileResolvedPosition.y;
+                        resolvedPosition.x = currentPosition.x; // For SMALL_TILE, only Y is resolved by this specific logic
+                        collisionResolvedThisIteration = true;
                     }
                 }
 
@@ -274,17 +294,12 @@ namespace dae
         }
         m_IsOnGround = landedThisFrame;
 
-        // --- Hard Floor Safety Net ---
-        // Define a hard floor Y value. Adjust this as needed for your game world.
-        // This uses the player's current height, so it should be after m_pPlayerCollider is known to be valid.
         AABB playerBoxForHardFloor = m_pPlayerCollider->GetBoundingBox();
-        float hardFloorY = 720.0f - playerBoxForHardFloor.height; // Example Y value
+        float hardFloorY = 724.0f - playerBoxForHardFloor.height;
 
         glm::vec2 finalPosition = m_pTransform->GetPosition();
         if (finalPosition.y > hardFloorY)
-        { // If player is below the hard floor
-// Optional: Check if landedThisFrame is false, to only apply if other collisions didn't make it land
-// if (!landedThisFrame && finalPosition.y > hardFloorY) {
+        {
             finalPosition.y = hardFloorY;
             m_pTransform->SetPosition(finalPosition.x, finalPosition.y);
             if (m_pPlayerCollider)
@@ -292,16 +307,12 @@ namespace dae
                 m_pPlayerCollider->SetPosition(finalPosition.x, finalPosition.y);
             }
             if (m_VerticalVelocity > 0)
-            { // Only stop falling if moving downwards
+            {
                 m_VerticalVelocity = 0.0f;
             }
-            m_IsOnGround = true; // Now considered on the hard floor
-            // }
+            m_IsOnGround = true;
         }
-        // --- End Hard Floor Safety Net ---
     }
-
-
 
 
 
@@ -386,7 +397,7 @@ namespace dae
 
         if (!sharedThis)
         {
-            std::cerr << "[PCC::BindInputs] Error: Owner is missing PlayerCharacterComponent (self)." << "\n";
+            std::cout << "[PCC::BindInputs] Error: Owner is missing PlayerCharacterComponent (self)." << "\n";
             return;
         }
 
@@ -407,7 +418,7 @@ namespace dae
             std::cout << "  [PCC::BindInputs] Binding controller commands for playerNumberForInput: " << playerNumberForInput << "\n";
             if (playerNumberForInput < 1)
             {
-                std::cerr << "  [PCC::BindInputs] Warning: playerNumberForInput " << playerNumberForInput
+                std::cout << "  [PCC::BindInputs] Warning: playerNumberForInput " << playerNumberForInput
                     << " might not be handled correctly by the current 3-argument BindControllerCommand if multiple controllers need distinct bindings." << "\n";
             }
 
