@@ -70,13 +70,20 @@ void BaseGameplayState::Exit(Game* /*game*/)
 void BaseGameplayState::SetupCommonUI(dae::Scene& scene)
 {
     auto background = std::make_shared<dae::GameObject>();
-    auto textureComponent = background->AddComponent<dae::TextureComponent>();
-    textureComponent->SetTexture("Branding/background.tga");
-    textureComponent->SetRenderSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-    //auto transformComponent = background->AddComponent<dae::TransformComponent>();
+	background->AddComponent<dae::TextureComponent>()->SetTexture("Branding/background.tga");
+    background->GetComponent<dae::TextureComponent>()->SetRenderSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     background->GetTransform()->SetPosition(0, 0);
     background->AddComponent<dae::RenderComponent>();
     scene.Add(background);
+
+    auto logo = std::make_shared<dae::GameObject>();
+    logo->AddComponent<dae::TextureComponent>()->SetTexture("Branding/logo.tga");
+	logo->GetTransform()->SetPosition(SCREEN_WIDTH - logo->GetComponent<dae::TextureComponent>()->GetTexturePixelSize().x - 50, 
+										SCREEN_HEIGHT - logo->GetComponent<dae::TextureComponent>()->GetTexturePixelSize().y - 50);
+    logo->AddComponent<dae::RenderComponent>();
+    scene.Add(logo);
+
+
 }
 
 void BaseGameplayState::PlayBackgroundMusic()

@@ -113,36 +113,31 @@ void StartMenuState::SetupPlayers(dae::Scene&)
 
 void StartMenuState::Load(dae::Scene& scene)
 {
-    // Add background using BaseGameplayState's background logic if needed
-    // Optionally call SetupCommonUI(scene) if you want the same background as gameplay
+    auto font24Pixel_NES = dae::ResourceManager::GetInstance().LoadFont("Fonts/Pixel_NES.otf", 24);
 
-    // Add splash/logo and menu text as before
     auto splash = std::make_shared<dae::GameObject>();
-    auto splashTextureComponent = splash->AddComponent<dae::TextureComponent>();
-    splashTextureComponent->SetTexture("HUD/Logo.png");
-    splashTextureComponent->SetRenderSize(BaseGameplayState::SCREEN_WIDTH * .5f, BaseGameplayState::SCREEN_HEIGHT * .5f);
-    dae::Vector2 splashSize = splashTextureComponent->GetRenderDestinationSize();
-    splash->GetTransform()->SetPosition(BaseGameplayState::SCREEN_WIDTH / 2.f - splashSize.x / 2.f, BaseGameplayState::SCREEN_HEIGHT / 2.f - splashSize.y / 2.f);
+    splash->AddComponent<dae::TextureComponent>()->SetTexture("HUD/Logo.png");
+    dae::Vector2 splashSize = splash->GetComponent<dae::TextureComponent>()->GetRenderDestinationSize();
+    splash->GetTransform()->SetPosition(BaseGameplayState::SCREEN_WIDTH / 2.f - splashSize.x / 2.f, BaseGameplayState::
+																SCREEN_HEIGHT / 2.f - splashSize.y / 2.f);
     splash->AddComponent<dae::RenderComponent>();
     scene.Add(splash);
 
-    auto text = std::make_shared<dae::GameObject>();
-    auto font = dae::ResourceManager::GetInstance().LoadFont("Fonts/Lingua.otf", 36);
-    text->AddComponent<dae::TextComponent>("BUBBLE BOBBLE - START MENU", font);
-    text->GetTransform()->SetPosition(200, 200);
-    text->AddComponent<dae::RenderComponent>();
-    scene.Add(text);
-
     auto pressKeyText = std::make_shared<dae::GameObject>();
-    auto smallFont = dae::ResourceManager::GetInstance().LoadFont("Fonts/Lingua.otf", 24);
-    pressKeyText->AddComponent<dae::TextComponent>("PRESS P TO START", smallFont);
-    pressKeyText->GetTransform()->SetPosition(200, 300);
+    pressKeyText->AddComponent<dae::TextComponent>("Press P To Start", font24Pixel_NES);
+    dae::Vector2 pressKeyTextSize = pressKeyText->GetComponent<dae::TextComponent>()->GetSize();
+    pressKeyText->GetTransform()->SetPosition(BaseGameplayState::SCREEN_WIDTH / 2.f - pressKeyTextSize.x / 2.f, BaseGameplayState::
+																	SCREEN_HEIGHT - 200);
     pressKeyText->AddComponent<dae::RenderComponent>();
     scene.Add(pressKeyText);
 
     auto quitText = std::make_shared<dae::GameObject>();
-    quitText->AddComponent<dae::TextComponent>("Press L to Quit", smallFont);
-    quitText->GetTransform()->SetPosition(350.0f, 400.0f);
+    quitText->AddComponent<dae::TextComponent>("Press L to Quit", font24Pixel_NES);
+    dae::Vector2 quitTextSize = quitText->GetComponent<dae::TextComponent>()->GetSize();
+    quitText->GetTransform()->SetPosition(BaseGameplayState::SCREEN_WIDTH / 2.f - quitTextSize.x / 2.f, BaseGameplayState::
+																	SCREEN_HEIGHT - 170);
+    quitText->GetComponent<dae::TextComponent>()->SetColor(SDL_Color(255,0,0,255));
     quitText->AddComponent<dae::RenderComponent>();
     scene.Add(quitText);
+
 }

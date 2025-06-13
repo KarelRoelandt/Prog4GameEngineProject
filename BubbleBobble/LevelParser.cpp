@@ -7,24 +7,18 @@
 #include <limits>      // For std::numeric_limits
 
 #include "Scene.h"
-
 #include "GameObject.h"
-
-#include "TransformComponent.h"
+#include "TransformComponent.h" // Still needed for GetTransform()
 #include "TextureComponent.h"
 #include "RenderComponent.h"
 #include "PlayerCharacterComponent.h"
 #include "HealthComponent.h"
 #include "ScoreComponent.h"
 #include "TextComponent.h" 
-
 #include "HealthDisplay.h"
 #include "ScoreDisplay.h"
-
 #include "ResourceManager.h"
-#include "BaseGameplayState.h"
-
-
+#include "BaseGameplayState.h" // For SCREEN_WIDTH and SCREEN_HEIGHT
 
 LevelParser::LevelParser()
     : m_currentPlayerNumber(1)
@@ -39,13 +33,14 @@ LevelParser::LevelParser()
     , m_zenChanHeight(48.0f)
     , m_offsetX(0.0f)
     , m_offsetY(0.0f)
-    , m_gameAreaWidth(BaseGameplayState::SCREEN_WIDTH)       
-    , m_gameAreaBaseHeight(BaseGameplayState::SCREEN_HEIGHT)    
-    , m_gameGridHeight(m_gameAreaBaseHeight - m_hudHeight) // Use m_gameAreaBaseHeight here
+    , m_gameAreaWidth(BaseGameplayState::SCREEN_WIDTH)
+    , m_gameAreaBaseHeight(BaseGameplayState::SCREEN_HEIGHT)
+    , m_gameGridHeight(m_gameAreaBaseHeight - m_hudHeight) // m_hudHeight from .h (48.0f)
 {
     std::cout << "[LevelParser] Initialized with screen dimensions: "
-        << BaseGameplayState::SCREEN_WIDTH << "x" << BaseGameplayState::SCREEN_HEIGHT << "." << "\n"; // screenWidth/Height are params
+        << BaseGameplayState::SCREEN_WIDTH << "x" << BaseGameplayState::SCREEN_HEIGHT << "." << "\n";
     std::cout << "[LevelParser] Game Area Width for centering: " << m_gameAreaWidth << "\n";
+    std::cout << "[LevelParser] HUD Height (m_hudHeight from .h): " << m_hudHeight << "\n";
     std::cout << "[LevelParser] Game Grid Height (for content below HUD): " << m_gameGridHeight
         << " (calculated from m_gameAreaBaseHeight: " << m_gameAreaBaseHeight
         << " and m_hudHeight: " << m_hudHeight << "px)" << "\n";
@@ -67,14 +62,15 @@ void LevelParser::CalculateLevelOffsetAndBounds(const std::string& filePath)
     {
         std::cerr << "[LevelParser] Error (Pre-scan): Could not open level file: " << filePath << "\n";
         m_offsetX = 0;
-        m_offsetY = m_hudHeight;
+        m_offsetY = m_hudHeight + (m_gameGridHeight / 2.0f); // Basic fallback
         return;
     }
 
-    float minX = std::numeric_limits<float>::max();
-    float minY = std::numeric_limits<float>::max();
-    float maxX = std::numeric_limits<float>::lowest();
-    float maxY = std::numeric_limits<float>::lowest();
+    float min_file_X = std::numeric_limits<float>::max();
+    float max_file_X = std::numeric_limits<float>::lowest();
+    float min_effective_render_Y = std::numeric_limits<float>::max();
+    float max_effective_render_Y = std::numeric_limits<float>::lowest();
+
     bool isEmptyLevel = true;
     std::string line;
 
@@ -87,34 +83,34 @@ void LevelParser::CalculateLevelOffsetAndBounds(const std::string& filePath)
         std::string type = line.substr(0, equalsPos);
         std::string data = line.substr(equalsPos + 1);
         auto parts = SplitString(data, ',');
-        float x = 0, y = 0;
+        float x_coord = 0, y_coord = 0;
         float currentWidth = 0, currentHeight = 0;
 
         if (type == "BigTile" || type == "BigTileInvis")
         {
             if (parts.size() != 2) continue;
-            x = std::stof(parts[0]); y = std::stof(parts[1]);
+            x_coord = std::stof(parts[0]); y_coord = std::stof(parts[1]);
             currentWidth = m_bigTileWidth; currentHeight = m_bigTileHeight;
             isEmptyLevel = false;
         }
         else if (type == "Tile" || type == "FakeTile")
         {
             if (parts.size() != 2) continue;
-            x = std::stof(parts[0]); y = std::stof(parts[1]);
+            x_coord = std::stof(parts[0]); y_coord = std::stof(parts[1]);
             currentWidth = m_smallTileWidth; currentHeight = m_smallTileHeight;
             isEmptyLevel = false;
         }
         else if (type == "Player")
         {
             if (parts.size() != 3) continue;
-            x = std::stof(parts[0]); y = std::stof(parts[1]);
+            x_coord = std::stof(parts[0]); y_coord = std::stof(parts[1]);
             currentWidth = m_playerWidth; currentHeight = m_playerHeight;
             isEmptyLevel = false;
         }
         else if (type == "ZenChan")
         {
             if (parts.size() != 2) continue;
-            x = std::stof(parts[0]); y = std::stof(parts[1]);
+            x_coord = std::stof(parts[0]); y_coord = std::stof(parts[1]);
             currentWidth = m_zenChanWidth; currentHeight = m_zenChanHeight;
             isEmptyLevel = false;
         }
@@ -122,27 +118,49 @@ void LevelParser::CalculateLevelOffsetAndBounds(const std::string& filePath)
         {
             continue;
         }
-        minX = std::min(minX, x); minY = std::min(minY, y);
-        maxX = std::max(maxX, x + currentWidth); maxY = std::max(maxY, y + currentHeight);
+
+        min_file_X = std::min(min_file_X, x_coord);
+        max_file_X = std::max(max_file_X, x_coord + currentWidth);
+
+        float effective_y_render_start = y_coord;
+        if (type == "Tile" || type == "FakeTile")
+        {
+            effective_y_render_start += m_smallTileHeight;
+        }
+
+        min_effective_render_Y = std::min(min_effective_render_Y, effective_y_render_start);
+        max_effective_render_Y = std::max(max_effective_render_Y, effective_y_render_start + currentHeight);
     }
     levelFile.close();
 
+    float level_file_width = 0;
     if (isEmptyLevel)
     {
-        minX = 0; minY = 0; maxX = 0; maxY = 0;
+        min_file_X = 0; max_file_X = 0;
+        min_effective_render_Y = 0; max_effective_render_Y = 0;
         std::cout << "[LevelParser] Warning: Level file empty or no recognized elements for bounds." << "\n";
     }
+    else
+    {
+        level_file_width = max_file_X - min_file_X;
+    }
 
-    float levelWidth = (isEmptyLevel) ? 0 : (maxX - minX);
-    float levelHeight = (isEmptyLevel) ? 0 : (maxY - minY);
+    float effective_level_render_height = max_effective_render_Y - min_effective_render_Y;
+    if (isEmptyLevel) effective_level_render_height = 0;
 
-    m_offsetX = (m_gameAreaWidth - levelWidth) / 2.0f - minX;
-    // Global m_offsetY includes one m_smallTileHeight adjustment to shift everything down.
-    m_offsetY = m_hudHeight + m_smallTileHeight + (m_gameGridHeight - levelHeight) / 2.0f - minY;
+    m_offsetX = (m_gameAreaWidth - level_file_width) / 2.0f - min_file_X;
+    m_offsetY = m_hudHeight + (m_gameGridHeight - effective_level_render_height) / 2.0f - min_effective_render_Y;
 
-    std::cout << "[LevelParser] Scanned Level Elements Bounds: Min(" << minX << "," << minY << ") Max(" << maxX << "," << maxY << ")" << "\n";
-    std::cout << "[LevelParser] Scanned Level Elements Dimensions: " << levelWidth << "x" << levelHeight << "\n";
-    std::cout << "[LevelParser] Calculated Global Offset for elements (includes HUD shift and one general 24px downward adjustment): (" << m_offsetX << ", " << m_offsetY << ")" << "\n";
+    std::cout << "[LevelParser] --- Centering Calculation (Effective Render Bounds) ---" << "\n";
+    std::cout << "[LevelParser] Screen Width (m_gameAreaWidth): " << m_gameAreaWidth << "\n";
+    std::cout << "[LevelParser] Screen Height (m_gameAreaBaseHeight): " << m_gameAreaBaseHeight << "\n";
+    std::cout << "[LevelParser] HUD Height (m_hudHeight): " << m_hudHeight << "\n";
+    std::cout << "[LevelParser] Game Grid Display Height (m_gameGridHeight): " << m_gameGridHeight << "\n";
+    std::cout << "[LevelParser] Level File Width (level_file_width): " << level_file_width << "\n";
+    std::cout << "[LevelParser] Effective Level Render Height (for centering): " << effective_level_render_height << "\n";
+    std::cout << "[LevelParser] Min File X (min_file_X): " << min_file_X << "\n";
+    std::cout << "[LevelParser] Min Effective Render Y (min_effective_render_Y): " << min_effective_render_Y << "\n";
+    std::cout << "[LevelParser] Calculated Global Offset (m_offsetX, m_offsetY): (" << m_offsetX << ", " << m_offsetY << ")" << "\n";
 }
 
 bool LevelParser::LoadLevel(dae::Scene& scene, const std::string& filePath, bool isSinglePlayerGameMode)
@@ -155,12 +173,8 @@ bool LevelParser::LoadLevel(dae::Scene& scene, const std::string& filePath, bool
         std::cerr << "[LevelParser] Error: Could not open level file: " << filePath << "\n";
         return false;
     }
-
     std::string line;
     std::cout << "[LevelParser] Loading level: " << filePath << " with global offset (" << m_offsetX << "," << m_offsetY << ")" << "\n";
-    std::cout << "[LevelParser] Note: SmallTile/FakeTile types will receive an additional + " << m_smallTileHeight << "px Y-offset." << "\n";
-
-
     while (std::getline(levelFile, line))
     {
         if (line.empty() || line.rfind("//", 0) == 0) continue;
@@ -175,8 +189,8 @@ bool LevelParser::LoadLevel(dae::Scene& scene, const std::string& filePath, bool
 
         if (type == "BigTile") ParseBigTile(scene, data, false);
         else if (type == "BigTileInvis") ParseBigTile(scene, data, true);
-        else if (type == "Tile") ParseSmallTile(scene, data, false); // This is likely a platform
-        else if (type == "FakeTile") ParseSmallTile(scene, data, true); // This is likely a platform
+        else if (type == "Tile") ParseSmallTile(scene, data, false);
+        else if (type == "FakeTile") ParseSmallTile(scene, data, true);
         else if (type == "Player") ParsePlayer(scene, data, isSinglePlayerGameMode);
         else if (type == "ZenChan") ParseZenChan(scene, data);
         else
@@ -204,13 +218,12 @@ std::vector<std::string> LevelParser::SplitString(const std::string& s, char del
 void LevelParser::ParseBigTile(dae::Scene& scene, const std::string& lineData, bool isInvisible)
 {
     auto parts = SplitString(lineData, ',');
-    if (parts.size() != 2) { /* Error */ return; }
-    float x = std::stof(parts[0]);
-    float y = std::stof(parts[1]);
+    if (parts.size() != 2) { std::cerr << "[LevelParser] Error: Malformed BigTile data: " << lineData << "\n"; return; }
+    float x_file = std::stof(parts[0]);
+    float y_file = std::stof(parts[1]);
     auto tile = std::make_shared<dae::GameObject>();
     tile->SetName(isInvisible ? "BigTileInvis" : "BigTile");
-    auto transform = tile->AddComponent<dae::TransformComponent>();
-    transform->SetPosition(x + m_offsetX, y + m_offsetY); // Uses global m_offsetY
+    tile->GetTransform()->SetPosition(x_file + m_offsetX, y_file + m_offsetY);
     if (!isInvisible)
     {
         auto texture = tile->AddComponent<dae::TextureComponent>();
@@ -224,14 +237,13 @@ void LevelParser::ParseBigTile(dae::Scene& scene, const std::string& lineData, b
 void LevelParser::ParseSmallTile(dae::Scene& scene, const std::string& lineData, bool isFake)
 {
     auto parts = SplitString(lineData, ',');
-    if (parts.size() != 2) { /* Error */ return; }
-    float x = std::stof(parts[0]);
-    float y = std::stof(parts[1]);
+    if (parts.size() != 2) { std::cerr << "[LevelParser] Error: Malformed SmallTile data: " << lineData << "\n"; return; }
+    float x_file = std::stof(parts[0]);
+    float y_file = std::stof(parts[1]);
     auto tile = std::make_shared<dae::GameObject>();
     tile->SetName(isFake ? "FakeTile" : "Tile");
-    auto transform = tile->AddComponent<dae::TransformComponent>();
-    // Apply an additional m_smallTileHeight to SmallTile/FakeTile to shift them further down
-    transform->SetPosition(x + m_offsetX, y + m_offsetY + m_smallTileHeight);
+    // Effective render start for SmallTile is (y_file + m_smallTileHeight). Apply m_offsetY to this.
+    tile->GetTransform()->SetPosition(x_file + m_offsetX, (y_file + m_smallTileHeight) + m_offsetY);
     auto texture = tile->AddComponent<dae::TextureComponent>();
     texture->SetTexture(m_SmallTileTexturePath);
     texture->SetRenderSize(m_smallTileWidth, m_smallTileHeight);
@@ -242,41 +254,46 @@ void LevelParser::ParseSmallTile(dae::Scene& scene, const std::string& lineData,
 void LevelParser::ParsePlayer(dae::Scene& scene, const std::string& lineData, bool isSinglePlayerGameMode)
 {
     auto parts = SplitString(lineData, ',');
-    if (parts.size() != 3) { /* Error */ return; }
-    float x = std::stof(parts[0]);
-    float y = std::stof(parts[1]);
+    if (parts.size() != 3) { std::cerr << "[LevelParser] Error: Malformed Player data: " << lineData << "\n"; return; }
+    float x_file = std::stof(parts[0]);
+    float y_file = std::stof(parts[1]);
     bool isKeyboard = (parts[2] == "true" || parts[2] == "True");
+
     if (isSinglePlayerGameMode && m_currentPlayerNumber > 1) return;
+
     auto player = std::make_shared<dae::GameObject>();
     player->SetName("Player" + std::to_string(m_currentPlayerNumber));
+    player->GetTransform()->SetPosition(x_file + m_offsetX, y_file + m_offsetY);
+
     auto textureComp = player->AddComponent<dae::TextureComponent>();
     textureComp->SetTexture(m_currentPlayerNumber == 1 ? m_Player1TexturePath : m_Player2TexturePath);
     textureComp->SetRenderSize(m_playerWidth, m_playerHeight);
-    auto transformComp = player->AddComponent<dae::TransformComponent>();
-    transformComp->SetPosition(x + m_offsetX, y + m_offsetY); // Uses global m_offsetY
     player->AddComponent<dae::RenderComponent>();
     auto playerComponent = player->AddComponent<dae::PlayerCharacterComponent>(100.0f);
     playerComponent->BindInputs(isKeyboard, m_currentPlayerNumber);
     auto healthComponent = player->AddComponent<dae::HealthComponent>(player.get(), 3);
     auto scoreComponent = player->AddComponent<dae::ScoreComponent>(player.get(), 0);
     scene.Add(player);
+
     auto font = dae::ResourceManager::GetInstance().LoadFont("Fonts/Lingua.otf", 16);
     if (!font) { std::cerr << "[LevelParser] Error: Could not load font for player UI." << "\n"; }
     else
     {
-        float uiYPos1 = 10.f; float uiYPos2 = 28.f;
+        float uiYPos1_lives = 10.f;
+        float uiYPos2_score = 28.f;
         auto healthDisplayObject = std::make_shared<dae::GameObject>();
         healthDisplayObject->SetName(player->GetName() + "HealthDisplay");
+        healthDisplayObject->GetTransform()->SetPosition(m_currentPlayerNumber == 1 ? 10.f : m_gameAreaWidth - 150.f, uiYPos1_lives);
         auto healthText = healthDisplayObject->AddComponent<dae::TextComponent>("Lives: 3", font);
-        healthDisplayObject->GetTransform()->SetPosition(m_currentPlayerNumber == 1 ? 10.f : m_gameAreaWidth - 150.f, uiYPos1);
         healthDisplayObject->AddComponent<dae::RenderComponent>();
         auto healthDisplay = healthDisplayObject->AddComponent<dae::HealthDisplay>(healthDisplayObject.get(), healthText);
         healthComponent->AddObserver(healthDisplay.get());
         scene.Add(healthDisplayObject);
+
         auto scoreDisplayObject = std::make_shared<dae::GameObject>();
         scoreDisplayObject->SetName(player->GetName() + "ScoreDisplay");
+        scoreDisplayObject->GetTransform()->SetPosition(m_currentPlayerNumber == 1 ? 10.f : m_gameAreaWidth - 150.f, uiYPos2_score);
         auto scoreText = scoreDisplayObject->AddComponent<dae::TextComponent>("Score: 0", font);
-        scoreDisplayObject->GetTransform()->SetPosition(m_currentPlayerNumber == 1 ? 10.f : m_gameAreaWidth - 150.f, uiYPos2);
         scoreDisplayObject->AddComponent<dae::RenderComponent>();
         auto scoreDisplay = scoreDisplayObject->AddComponent<dae::ScoreDisplay>(scoreDisplayObject.get(), scoreText);
         scoreComponent->AddObserver(scoreDisplay.get());
@@ -288,13 +305,12 @@ void LevelParser::ParsePlayer(dae::Scene& scene, const std::string& lineData, bo
 void LevelParser::ParseZenChan(dae::Scene& scene, const std::string& lineData)
 {
     auto parts = SplitString(lineData, ',');
-    if (parts.size() != 2) { /* Error */ return; }
-    float x = std::stof(parts[0]);
-    float y = std::stof(parts[1]);
+    if (parts.size() != 2) { std::cerr << "[LevelParser] Error: Malformed ZenChan data: " << lineData << "\n"; return; }
+    float x_file = std::stof(parts[0]);
+    float y_file = std::stof(parts[1]);
     auto enemy = std::make_shared<dae::GameObject>();
     enemy->SetName("ZenChan");
-    auto transform = enemy->AddComponent<dae::TransformComponent>();
-    transform->SetPosition(x + m_offsetX, y + m_offsetY); // Uses global m_offsetY
+    enemy->GetTransform()->SetPosition(x_file + m_offsetX, y_file + m_offsetY);
     auto textureComp = enemy->AddComponent<dae::TextureComponent>();
     textureComp->SetTexture(m_ZenChanTexturePath);
     textureComp->SetRenderSize(m_zenChanWidth, m_zenChanHeight);
