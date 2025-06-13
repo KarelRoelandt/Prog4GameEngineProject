@@ -11,27 +11,28 @@ namespace dae
 	// Assuming a simple structure for a 2D bounding box
 	struct AABB
 	{
-	    float x;
-	    float y;
-	    float width;
-	    float height;
+		float x;
+		float y;
+		float width;
+		float height;
 
-	    // Helper to get edge coordinates
-	    float GetTop() const { return y; }
-	    float GetBottom() const { return y + height; }
-	    float GetLeft() const { return x; }
-	    float GetRight() const { return x + width; }
+		// Helper to get edge coordinates
+		float GetTop() const { return y; }
+		float GetBottom() const { return y + height; }
+		float GetLeft() const { return x; }
+		float GetRight() const { return x + width; }
 	};
 
 	// Enum to identify the type of collider
 	enum class ColliderTag
 	{
-	    PLAYER,
+		PLAYER,
+		BUBBLE,
 		ENEMY,
-	    SMALL_TILE,
-	    BIG_TILE,   // New tag for big tiles
-	    GENERIC     // Default for other collidable objects
-	    // Add other tags as needed (e.g., ENEMY, WALL)
+		SMALL_TILE,
+		BIG_TILE,   // New tag for big tiles
+		GENERIC     // Default for other collidable objects
+		// Add other tags as needed (e.g., ENEMY, WALL)
 	};
 
 
@@ -50,8 +51,10 @@ namespace dae
 		// void Update(float deltaTime, const TransformComponent& transform); 
 
 		// Checks collision with another BoxCollisionComponent.
-		// playerVerticalVelocity is a hint for player's movement direction for specific rules.
-		bool IsColliding(const BoxCollisionComponent& other, float playerVerticalVelocity = 0.0f) const;
+		// The second parameter 'verticalDisplacementOfThis' is the vertical movement of 'this'
+		// component for the current frame (e.g., velocity * deltaTime).
+		// It's crucial for swept collision checks, especially for the player.
+		bool IsColliding(const BoxCollisionComponent& other, float verticalDisplacementOfThis = 0.0f) const;
 
 		// Getters
 		const AABB& GetBoundingBox() const;

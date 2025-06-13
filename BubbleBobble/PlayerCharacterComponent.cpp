@@ -5,6 +5,7 @@
 #include <typeinfo>  
 #include <iomanip> 
 
+#include "AnimatorComponent.h"
 #include "GameObject.h"
 #include "TransformComponent.h"
 #include "HealthComponent.h"
@@ -16,7 +17,9 @@
 #include "ISoundService.h"   // For the type ISoundService
 #include "PlayerCommands.h" 
 #include "BoxCollisionComponent.h" 
+#include "RenderComponent.h"
 #include "Scene.h"                 
+#include "ResourceManager.h"
 
 namespace dae
 {
@@ -328,12 +331,50 @@ namespace dae
     {
         m_Direction.x += x;
         m_Direction.x = std::clamp(m_Direction.x, -1.0f, 1.0f);
+
+		auto owner = GetOwner();
+        auto animationComponent = owner->GetComponent<dae::AnimatorComponent>();
+
+        // Flip animation based on direction
+        if (animationComponent)
+        {
+            if (m_Direction.x < 0)
+                animationComponent->SetFlip(true);  // Face left
+            else if (m_Direction.x > 0)
+                animationComponent->SetFlip(false); // Face right
+        }
+
+        // State change logic: if on ground and not already running, switch to run state
+        EnsureStateMachine();
+        if (m_pStateMachine && m_IsOnGround)
+        {
+            auto* currentState = m_pStateMachine->GetCurrentState();
+            if (!currentState || typeid(*currentState) != typeid(PlayerRunState))
+            {
+                m_pStateMachine->ChangeState(std::make_unique<PlayerRunState>());
+            }
+        }
+
     }
 
     void PlayerCharacterComponent::StopMove(float x, float /*y*/)
     {
         m_Direction.x -= x;
         m_Direction.x = std::clamp(m_Direction.x, -1.0f, 1.0f);
+
+        // State change logic: if on ground and not already idle, switch to idle state
+        EnsureStateMachine();
+        if (m_pStateMachine && m_IsOnGround)
+        {
+            if (std::abs(m_Direction.x) < 0.01f)
+            {
+                auto* currentState = m_pStateMachine->GetCurrentState();
+                if (!currentState || typeid(*currentState) != typeid(PlayerIdleState))
+                {
+                    m_pStateMachine->ChangeState(std::make_unique<PlayerIdleState>());
+                }
+            }
+        }
     }
 
     void PlayerCharacterComponent::Jump()
@@ -345,6 +386,54 @@ namespace dae
             if (m_pSoundService) { /* m_pSoundService->Play("JumpSoundID", 0.5f); */ }
         }
     }
+
+    void PlayerCharacterComponent::ShootBubble()
+    {
+        if (!m_pCurrentScene) return;
+
+		std::string playerTexturePath;
+
+		auto owner = GetOwner();
+
+        if (owner->GetName() == "Player1")
+        {
+            playerTexturePath = "PLayer/Bubby/";
+        }
+        else
+        {
+            playerTexturePath = "PLayer/Bobby/";
+        }
+
+        // Create bubble GameObject
+        auto bubble = std::make_shared<GameObject>();
+        bubble->SetName("Bubble");
+
+        // Set bubble position to player's position
+        glm::vec2 pos = owner->GetTransform()->GetPosition();
+        bubble->GetTransform()->SetPosition(pos.x, pos.y);
+
+        // Add components: Texture, Render, Movement, Collision, etc.
+        auto tex = bubble->AddComponent<TextureComponent>();
+        tex->SetTexture(playerTexturePath + "Bubble_Anim.png");
+        tex->SetRenderSize(48, 48);
+        bubble->AddComponent<RenderComponent>();
+
+        auto bubblesize = bubble->GetComponent<TextureComponent>()->GetRenderDestinationSize();
+        bubble->AddComponent<dae::BoxCollisionComponent>(pos.x, pos.y,  bubblesize.x - 4, bubblesize.x - 4, dae::ColliderTag::BUBBLE);
+
+        auto bulletTexture = dae::ResourceManager::GetInstance().LoadTexture(playerTexturePath + "Bubble_Anim.png");
+        auto animator = bubble->AddComponent<dae::AnimatorComponent>();
+        animator->AddAnimationFromGrid("ShootBubble", bulletTexture, 48, 48, 3, 0.08f, true);
+        animator->Play("ShootBubble");
+        // Set bubble velocity based on player direction
+        //float bubbleSpeed = 200.0f;
+        //float direction = (m_Direction.x < 0) ? -1.0f : 1.0f;
+        // You may want to add a BubbleComponent to handle movement:
+        // bubble->AddComponent<BubbleComponent>(bubbleSpeed * dir);
+
+        m_pCurrentScene->Add(bubble);
+    }
+
 
     void PlayerCharacterComponent::DoDamage(int amount)
     {
@@ -412,6 +501,8 @@ namespace dae
             inputManager.BindCommand(SDLK_c, InputState::Pressed, std::make_shared<DamageCommand>(sharedThis, 1));
             inputManager.BindCommand(SDLK_z, InputState::Pressed, std::make_shared<ScoreCommand>(sharedThis, 10));
             inputManager.BindCommand(SDLK_x, InputState::Pressed, std::make_shared<ScoreCommand>(sharedThis, 100));
+
+            inputManager.BindCommand(SDLK_f, InputState::Pressed, std::make_shared<ShootCommand>(sharedThis));
         }
         else // Controller
         {
@@ -427,7 +518,7 @@ namespace dae
             inputManager.BindControllerCommand(GamepadButton::DPadLeft, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, -1.0f, 0.0f));
             inputManager.BindControllerCommand(GamepadButton::DPadRight, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 1.0f, 0.0f));
             inputManager.BindControllerCommand(GamepadButton::ButtonA, InputState::Pressed, std::make_shared<JumpCommand>(sharedThis));
-            inputManager.BindControllerCommand(GamepadButton::ButtonX, InputState::Pressed, std::make_shared<DamageCommand>(sharedThis, 1));
+            inputManager.BindControllerCommand(GamepadButton::ButtonX, InputState::Pressed, std::make_shared<ShootCommand>(sharedThis));
             inputManager.BindControllerCommand(GamepadButton::ButtonY, InputState::Pressed, std::make_shared<ScoreCommand>(sharedThis, 10));
         }
     }

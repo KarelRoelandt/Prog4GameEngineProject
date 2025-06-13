@@ -39,6 +39,7 @@ namespace dae
         void Move(float x, float y = 0.0f);
         void StopMove(float x, float y = 0.0f);
         void Jump();
+        void ShootBubble();
         void DoDamage(int amount);
         void AddScore(int points);
 

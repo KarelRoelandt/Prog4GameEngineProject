@@ -1,12 +1,22 @@
 // BubbleBobble/PlayerRunState.cpp
 #include "PlayerRunState.h"
-#include "GameObject.h"
+
 #include <iostream>
 
-void PlayerRunState::Enter(dae::GameObject* /*owner*/)
+#include "GameObject.h"
+#include "AnimatorComponent.h"
+
+
+
+void PlayerRunState::Enter(dae::GameObject* owner)
 {
     std::cout << "[PlayerRunState] Enter\n";
-    // Optionally: set animation, play sound, etc.
+
+    auto animator = owner->GetComponent<dae::AnimatorComponent>();
+    if (animator)
+    {
+        animator->Play("Run");
+    }
 }
 
 void PlayerRunState::Update(dae::GameObject* /*owner*/, float /*deltaTime*/)

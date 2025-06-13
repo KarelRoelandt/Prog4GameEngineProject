@@ -61,11 +61,11 @@ namespace dae
                         if (textureComponent->IsUsingSourceRect())
                         {
                             const SDL_Rect& srcRect = textureComponent->GetSourceRect();
-                            Renderer::GetInstance().RenderTexture(*textureSharedPtr, objectPosition.x, objectPosition.y, destWidth, destHeight, &srcRect);
+                            Renderer::GetInstance().RenderTexture(*textureSharedPtr, objectPosition.x, objectPosition.y, destWidth, destHeight, &srcRect, textureComponent->GetFlipX());
                         }
                         else
                         {
-                            Renderer::GetInstance().RenderTexture(*textureSharedPtr, objectPosition.x, objectPosition.y, destWidth, destHeight, nullptr);
+                            Renderer::GetInstance().RenderTexture(*textureSharedPtr, objectPosition.x, objectPosition.y, destWidth, destHeight, nullptr, textureComponent->GetFlipX());
                         }
                     }
                 }

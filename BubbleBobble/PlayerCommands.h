@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "Command.h"
+#include "PlayerShootState.h"
 
 class PlayerCharacterComponent;
 
@@ -106,6 +107,21 @@ namespace dae
         int m_Points;
     };
 
-
+    class ShootCommand : public Command
+    {
+    public:
+        ShootCommand(std::shared_ptr<PlayerCharacterComponent> player) : m_pPlayer(player) {}
+        void Execute() override
+        {
+            if (!m_pPlayer) return;
+            auto owner = m_pPlayer->GetOwner();
+            if (!owner) return;
+            auto stateMachine = owner->GetComponent<StateMachineComponent>();
+            if (stateMachine)
+                stateMachine->ChangeState(std::make_unique<PlayerShootState>());
+        }
+    private:
+        std::shared_ptr<PlayerCharacterComponent> m_pPlayer;
+    };
 
 }

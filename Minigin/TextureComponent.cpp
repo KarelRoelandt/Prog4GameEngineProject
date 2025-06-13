@@ -118,4 +118,14 @@ namespace dae
         }
         return nullptr;
     }
+    void TextureComponent::SetTexture(std::shared_ptr<Texture2D> texture)
+    {
+        m_texture = texture;
+        m_UseSourceRect = false;
+        m_isRenderSizeSet = false;
+        if (m_texture)
+            m_renderSize = GetTexturePixelSize();
+        else
+            m_renderSize = { 0.f, 0.f };
+    }
 }

@@ -21,8 +21,10 @@ namespace dae
 
         void RenderTexture(const Texture2D& texture, float x, float y) const;
         void RenderTexture(const Texture2D& texture, float x, float y, float width, float height) const;
+        void RenderTexture(const Texture2D& texture, float x, float y, float width, float height,
+                           const SDL_Rect* srcRect) const;
         // ADD THIS NEW OVERLOAD for source rectangle rendering
-        void RenderTexture(const Texture2D& texture, float x, float y, float width, float height, const SDL_Rect* srcRect) const;
+        void RenderTexture(const Texture2D& texture, float x, float y, float width, float height, const SDL_Rect* srcRect, bool flipX) const;
 
         SDL_Renderer* GetSDLRenderer() const;
 

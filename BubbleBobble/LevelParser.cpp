@@ -6,6 +6,7 @@
 #include <algorithm>   // For std::min/max
 #include <limits>      // For std::numeric_limits
 
+#include "AnimatorComponent.h"
 #include "Scene.h"
 #include "GameObject.h"
 #include "TransformComponent.h" // Still needed for GetTransform()
@@ -20,14 +21,16 @@
 #include "ResourceManager.h"
 #include "BoxCollisionComponent.h"
 #include "PlayerCommands.h"
+#include "PlayerIdleState.h"
+#include "StateMachineComponent.h"
 
 LevelParser::LevelParser()
     : m_currentPlayerNumber(1)
     , m_BigTileTexturePath("Levels/1/Big.png")
     , m_SmallTileTexturePath("Levels/1/Small.png")
-    , m_Player1TexturePath("Sprites/Bub.png")
-    , m_Player2TexturePath("Sprites/Bob.png")
-    , m_ZenChanTexturePath("Enemies/ZenChan/Run_Anim.png")
+    , m_Player1TexturePath("PLayer/Bubby/")
+    , m_Player2TexturePath("PLayer/Bobby/")
+    , m_ZenChanTexturePath("Enemies/ZenChan/")
 {
 
     m_offsetX = (m_windowWidth - m_gameAreaWidth) / 2;          // WINDOWS % factor niet in meegerekend
@@ -176,17 +179,27 @@ void LevelParser::ParsePlayer(dae::Scene& scene, const std::string& lineData, bo
     player->GetTransform()->SetPosition(worldX, worldY);
 
     auto textureComp = player->AddComponent<dae::TextureComponent>();
-    textureComp->SetTexture(m_currentPlayerNumber == 1 ? m_Player1TexturePath : m_Player2TexturePath);
+    textureComp->SetTexture(m_Player1TexturePath + "Idle_Anim.png");
     textureComp->SetRenderSize(m_playerWidth, m_playerHeight);
     player->AddComponent<dae::RenderComponent>();
-    player->AddComponent<dae::BoxCollisionComponent>(worldX, worldY, m_playerWidth - 4, m_playerHeight - 0, dae::ColliderTag::PLAYER);
+    player->AddComponent<dae::BoxCollisionComponent>(worldX, worldY, m_playerWidth - 8, m_playerHeight, dae::ColliderTag::PLAYER);
     // std::cout << "[LevelParser] Added PLAYER BoxCollisionComponent to " << player->GetName() << " at (" << worldX << "," << worldY << ")" << "\n";
     auto playerComponent = player->AddComponent<dae::PlayerCharacterComponent>(100.0f);
     playerComponent->BindInputs(isKeyboard, m_currentPlayerNumber);
     playerComponent->SetCurrentScene(&scene);
     auto healthComponent = player->AddComponent<dae::HealthComponent>(player.get(), 3);
     auto scoreComponent = player->AddComponent<dae::ScoreComponent>(player.get(), 0);
-   
+
+	auto animator = player->AddComponent<dae::AnimatorComponent>();
+	auto runTexture = dae::ResourceManager::GetInstance().LoadTexture(m_Player1TexturePath + "Run_Anim.png");
+	auto idleTexture = dae::ResourceManager::GetInstance().LoadTexture(m_Player1TexturePath + "Idle_Anim.png");
+	auto shootTexture = dae::ResourceManager::GetInstance().LoadTexture(m_Player1TexturePath + "Shoot_Anim.png");
+    animator->AddAnimationFromGrid("Run", runTexture, 48, 48, 4, 0.08f, true);
+    animator->AddAnimationFromGrid("Idle", idleTexture, 48, 48, 2, 0.08f, true);
+    animator->AddAnimationFromGrid("Shoot", shootTexture, 48, 48, 4, 0.08f, false);
+
+    player->AddComponent<dae::StateMachineComponent>()->ChangeState(std::make_unique<PlayerIdleState>());
+    
 
     scene.Add(player);
 
@@ -231,13 +244,17 @@ void LevelParser::ParseZenChan(dae::Scene& scene, const std::string& lineData)
     enemy->GetTransform()->SetPosition(worldX, worldY);
 
     auto textureComp = enemy->AddComponent<dae::TextureComponent>();
-    textureComp->SetTexture(m_ZenChanTexturePath);
+    textureComp->SetTexture(m_ZenChanTexturePath + "Run_Anim.png");
     textureComp->SetRenderSize(m_zenChanWidth, m_zenChanHeight);
     enemy->AddComponent<dae::RenderComponent>();
 
-    
     enemy->AddComponent<dae::BoxCollisionComponent>(worldX, worldY, m_zenChanWidth, m_zenChanHeight, dae::ColliderTag::ENEMY); // Assuming you add ENEMY to ColliderTag
     // std::cout << "[LevelParser] Added ENEMY BoxCollisionComponent to " << enemy->GetName() << " at (" << worldX << "," << worldY << ")" << "\n";
+
+    auto animator = enemy->AddComponent<dae::AnimatorComponent>();
+    auto runTexture = dae::ResourceManager::GetInstance().LoadTexture(m_ZenChanTexturePath + "Run_Anim.png");
+    animator->AddAnimationFromGrid("Run", runTexture, 48, 48, 4, 0.08f, true);
+	animator->Play("Run");
 
     scene.Add(enemy);
 }

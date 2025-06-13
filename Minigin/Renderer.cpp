@@ -74,7 +74,6 @@ namespace dae
         SDL_RenderCopy(GetSDLRenderer(), texture.GetSDLTexture(), nullptr, &dst);
     }
 
-    // ADD THIS NEW IMPLEMENTATION
     void Renderer::RenderTexture(const Texture2D& texture, const float x, const float y, const float width, const float height, const SDL_Rect* srcRect) const
     {
         SDL_Rect dstRect{};
@@ -86,6 +85,27 @@ namespace dae
         // Use SDL_RenderCopyEx if you need rotation or flipping, otherwise SDL_RenderCopy is fine.
         // For basic source rectangle functionality, SDL_RenderCopy is sufficient.
         SDL_RenderCopy(GetSDLRenderer(), texture.GetSDLTexture(), srcRect, &dstRect);
+    }
+
+    void Renderer::RenderTexture(const Texture2D& texture, float x, float y, float width, float height, const SDL_Rect* srcRect, bool flipX) const
+    {
+        SDL_Rect dstRect{};
+        dstRect.x = static_cast<int>(x);
+        dstRect.y = static_cast<int>(y);
+        dstRect.w = static_cast<int>(width);
+        dstRect.h = static_cast<int>(height);
+
+        SDL_RendererFlip flip = flipX ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+
+        SDL_RenderCopyEx(
+            GetSDLRenderer(),
+            texture.GetSDLTexture(),
+            srcRect,
+            &dstRect,
+            0.0,        // angle
+            nullptr,    // center
+            flip
+        );
     }
 
     SDL_Renderer* Renderer::GetSDLRenderer() const

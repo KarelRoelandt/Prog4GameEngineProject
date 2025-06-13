@@ -173,6 +173,7 @@
     <ClCompile Include="PlayerCharacterComponent.cpp" />
     <ClCompile Include="PlayerIdleState.cpp" />
     <ClCompile Include="PlayerRunState.cpp" />
+    <ClCompile Include="PlayerShootState.cpp" />
     <ClCompile Include="RotationComponent.cpp" />
     <ClCompile Include="ScoreComponent.cpp" />
     <ClCompile Include="ScoreDisplay.cpp" />
@@ -198,6 +199,7 @@
     <ClInclude Include="PlayerCommands.h" />
     <ClInclude Include="PlayerIdleState.h" />
     <ClInclude Include="PlayerRunState.h" />
+    <ClInclude Include="PlayerShootState.h" />
     <ClInclude Include="RotationComponent.h" />
     <ClInclude Include="ScoreComponent.h" />
     <ClInclude Include="ScoreDisplay.h" />

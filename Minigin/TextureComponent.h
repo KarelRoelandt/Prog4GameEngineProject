@@ -44,7 +44,11 @@ namespace dae
         bool IsUsingSourceRect() const;
         const SDL_Rect& GetSourceRect() const;
 
-        SDL_Texture* GetSDLTexture() const; // This was line 52 in the previous version
+        SDL_Texture* GetSDLTexture() const;
+        void SetTexture(std::shared_ptr<Texture2D> texture);
+
+        void SetFlipX(bool flip) { m_FlipX = flip; }
+        bool GetFlipX() const { return m_FlipX; }
 
     private:
         std::shared_ptr<Texture2D> m_texture;
@@ -53,5 +57,7 @@ namespace dae
 
         SDL_Rect m_SourceRect;
         bool m_UseSourceRect;
+
+        bool m_FlipX = false;
     };
 }
