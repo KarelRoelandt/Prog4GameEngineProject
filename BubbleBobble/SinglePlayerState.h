@@ -1,9 +1,8 @@
 #pragma once
+
 #include "BaseGameplayState.h" // Your actual BaseGameplayState
 #include "LevelParser.h"       // For parsing and loading level data
 
-// Forward declarations (Game is likely already included via BaseGameplayState or GameState)
-// namespace dae { class Scene; } // Scene is likely known via BaseGameplayState or its includes
 
 class SinglePlayerState final : public BaseGameplayState
 {

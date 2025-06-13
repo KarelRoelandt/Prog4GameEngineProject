@@ -1,22 +1,30 @@
 #include "LevelParser.h"
+
 #include <fstream>
 #include <sstream>
 #include <iostream>    // For debug output
 #include <algorithm>   // For std::min/max
 #include <limits>      // For std::numeric_limits
 
+#include "Scene.h"
+
 #include "GameObject.h"
+
 #include "TransformComponent.h"
 #include "TextureComponent.h"
 #include "RenderComponent.h"
 #include "PlayerCharacterComponent.h"
 #include "HealthComponent.h"
 #include "ScoreComponent.h"
+#include "TextComponent.h" 
+
 #include "HealthDisplay.h"
 #include "ScoreDisplay.h"
-#include "ResourceManager.h" 
-#include "TextComponent.h" 
-#include "Scene.h" // Make sure dae::Scene is fully defined
+
+#include "ResourceManager.h"
+#include "BaseGameplayState.h"
+
+
 
 LevelParser::LevelParser()
     : m_currentPlayerNumber(1)
@@ -31,10 +39,16 @@ LevelParser::LevelParser()
     , m_zenChanHeight(48.0f)
     , m_offsetX(0.0f)
     , m_offsetY(0.0f)
-    , m_gameGridHeight(m_gameAreaBaseHeight - m_hudHeight)
+    , m_gameAreaWidth(BaseGameplayState::SCREEN_WIDTH)       
+    , m_gameAreaBaseHeight(BaseGameplayState::SCREEN_HEIGHT)    
+    , m_gameGridHeight(m_gameAreaBaseHeight - m_hudHeight) // Use m_gameAreaBaseHeight here
 {
-    std::cout << "[LevelParser] Initialized." << std::endl;
-    std::cout << "[LevelParser] Game Grid Area for centering: " << m_gameAreaWidth << "x" << m_gameGridHeight << " (below " << m_hudHeight << "px HUD)" << std::endl;
+    std::cout << "[LevelParser] Initialized with screen dimensions: "
+        << BaseGameplayState::SCREEN_WIDTH << "x" << BaseGameplayState::SCREEN_HEIGHT << "." << "\n"; // screenWidth/Height are params
+    std::cout << "[LevelParser] Game Area Width for centering: " << m_gameAreaWidth << "\n";
+    std::cout << "[LevelParser] Game Grid Height (for content below HUD): " << m_gameGridHeight
+        << " (calculated from m_gameAreaBaseHeight: " << m_gameAreaBaseHeight
+        << " and m_hudHeight: " << m_hudHeight << "px)" << "\n";
 }
 
 void LevelParser::SetDynamicElementDimensions(float playerW, float playerH, float zenChanW, float zenChanH)
@@ -43,7 +57,7 @@ void LevelParser::SetDynamicElementDimensions(float playerW, float playerH, floa
     m_playerHeight = playerH;
     m_zenChanWidth = zenChanW;
     m_zenChanHeight = zenChanH;
-    std::cout << "[LevelParser] Dynamic element dimensions updated." << std::endl;
+    std::cout << "[LevelParser] Dynamic element dimensions updated." << "\n";
 }
 
 void LevelParser::CalculateLevelOffsetAndBounds(const std::string& filePath)
@@ -51,7 +65,7 @@ void LevelParser::CalculateLevelOffsetAndBounds(const std::string& filePath)
     std::ifstream levelFile(filePath);
     if (!levelFile.is_open())
     {
-        std::cerr << "[LevelParser] Error (Pre-scan): Could not open level file: " << filePath << std::endl;
+        std::cerr << "[LevelParser] Error (Pre-scan): Could not open level file: " << filePath << "\n";
         m_offsetX = 0;
         m_offsetY = m_hudHeight;
         return;
@@ -116,7 +130,7 @@ void LevelParser::CalculateLevelOffsetAndBounds(const std::string& filePath)
     if (isEmptyLevel)
     {
         minX = 0; minY = 0; maxX = 0; maxY = 0;
-        std::cout << "[LevelParser] Warning: Level file empty or no recognized elements for bounds." << std::endl;
+        std::cout << "[LevelParser] Warning: Level file empty or no recognized elements for bounds." << "\n";
     }
 
     float levelWidth = (isEmptyLevel) ? 0 : (maxX - minX);
@@ -126,9 +140,9 @@ void LevelParser::CalculateLevelOffsetAndBounds(const std::string& filePath)
     // Global m_offsetY includes one m_smallTileHeight adjustment to shift everything down.
     m_offsetY = m_hudHeight + m_smallTileHeight + (m_gameGridHeight - levelHeight) / 2.0f - minY;
 
-    std::cout << "[LevelParser] Scanned Level Elements Bounds: Min(" << minX << "," << minY << ") Max(" << maxX << "," << maxY << ")" << std::endl;
-    std::cout << "[LevelParser] Scanned Level Elements Dimensions: " << levelWidth << "x" << levelHeight << std::endl;
-    std::cout << "[LevelParser] Calculated Global Offset for elements (includes HUD shift and one general 24px downward adjustment): (" << m_offsetX << ", " << m_offsetY << ")" << std::endl;
+    std::cout << "[LevelParser] Scanned Level Elements Bounds: Min(" << minX << "," << minY << ") Max(" << maxX << "," << maxY << ")" << "\n";
+    std::cout << "[LevelParser] Scanned Level Elements Dimensions: " << levelWidth << "x" << levelHeight << "\n";
+    std::cout << "[LevelParser] Calculated Global Offset for elements (includes HUD shift and one general 24px downward adjustment): (" << m_offsetX << ", " << m_offsetY << ")" << "\n";
 }
 
 bool LevelParser::LoadLevel(dae::Scene& scene, const std::string& filePath, bool isSinglePlayerGameMode)
@@ -138,13 +152,13 @@ bool LevelParser::LoadLevel(dae::Scene& scene, const std::string& filePath, bool
     std::ifstream levelFile(filePath);
     if (!levelFile.is_open())
     {
-        std::cerr << "[LevelParser] Error: Could not open level file: " << filePath << std::endl;
+        std::cerr << "[LevelParser] Error: Could not open level file: " << filePath << "\n";
         return false;
     }
 
     std::string line;
-    std::cout << "[LevelParser] Loading level: " << filePath << " with global offset (" << m_offsetX << "," << m_offsetY << ")" << std::endl;
-    std::cout << "[LevelParser] Note: SmallTile/FakeTile types will receive an additional + " << m_smallTileHeight << "px Y-offset." << std::endl;
+    std::cout << "[LevelParser] Loading level: " << filePath << " with global offset (" << m_offsetX << "," << m_offsetY << ")" << "\n";
+    std::cout << "[LevelParser] Note: SmallTile/FakeTile types will receive an additional + " << m_smallTileHeight << "px Y-offset." << "\n";
 
 
     while (std::getline(levelFile, line))
@@ -153,7 +167,7 @@ bool LevelParser::LoadLevel(dae::Scene& scene, const std::string& filePath, bool
         size_t equalsPos = line.find('=');
         if (equalsPos == std::string::npos)
         {
-            std::cerr << "[LevelParser] Warning: Malformed line (no '='): " << line << std::endl;
+            std::cerr << "[LevelParser] Warning: Malformed line (no '='): " << line << "\n";
             continue;
         }
         std::string type = line.substr(0, equalsPos);
@@ -167,11 +181,11 @@ bool LevelParser::LoadLevel(dae::Scene& scene, const std::string& filePath, bool
         else if (type == "ZenChan") ParseZenChan(scene, data);
         else
         {
-            std::cout << "[LevelParser] Unknown object type: " << type << std::endl;
+            std::cout << "[LevelParser] Unknown object type: " << type << "\n";
         }
     }
     levelFile.close();
-    std::cout << "[LevelParser] Level loading complete." << std::endl;
+    std::cout << "[LevelParser] Level loading complete." << "\n";
     return true;
 }
 
@@ -247,7 +261,7 @@ void LevelParser::ParsePlayer(dae::Scene& scene, const std::string& lineData, bo
     auto scoreComponent = player->AddComponent<dae::ScoreComponent>(player.get(), 0);
     scene.Add(player);
     auto font = dae::ResourceManager::GetInstance().LoadFont("Fonts/Lingua.otf", 16);
-    if (!font) { std::cerr << "[LevelParser] Error: Could not load font for player UI." << std::endl; }
+    if (!font) { std::cerr << "[LevelParser] Error: Could not load font for player UI." << "\n"; }
     else
     {
         float uiYPos1 = 10.f; float uiYPos2 = 28.f;

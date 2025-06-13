@@ -12,7 +12,7 @@ namespace dae
 class LevelParser
 {
 public:
-    LevelParser(); // Constructor
+    LevelParser();
 
     // Loads the level from the given file path into the scene.
     bool LoadLevel(dae::Scene& scene, const std::string& filePath, bool isSinglePlayerGameMode);

@@ -1,28 +1,35 @@
+#include <iostream> 
+
 #include "SinglePlayerState.h"
+
 #include "Game.h" // Assuming Game class is used by BaseGameplayState or for context
-#include "SceneManager.h"
 #include "Scene.h"
+
+#include "SceneManager.h"
+
 #include "GameObject.h"
+
 #include "TextComponent.h"
 #include "TransformComponent.h"
 #include "RenderComponent.h"
-#include "ResourceManager.h" // Crucial for GetDataPath()
-#include "LevelParser.h"     // For m_LevelParser
+
+#include "ResourceManager.h"
+#include "LevelParser.h"
+
 // Potentially InputManager.h if any direct input handling was planned here, though usually handled by commands
 
-#include <iostream> // For std::cout and std::cerr
 
 void SinglePlayerState::Enter(Game* game)
 {
-    std::cout << "[SinglePlayerState] Enter called." << std::endl;
+    std::cout << "[SinglePlayerState] Enter called." << "\n";
     BaseGameplayState::Enter(game); // This should call SetupPlayers via the virtual mechanism
     // and set up the "Gameplay" scene.
-    std::cout << "[SinglePlayerState] BaseGameplayState::Enter finished." << std::endl;
+    std::cout << "[SinglePlayerState] BaseGameplayState::Enter finished." << "\n";
 }
 
 void SinglePlayerState::Exit(Game* /*game*/)
 {
-    std::cout << "[SinglePlayerState] Exit called." << std::endl;
+    std::cout << "[SinglePlayerState] Exit called." << "\n";
     // Perform any cleanup specific to the single-player state if needed.
     // For example, if this state added specific observers or event listeners, remove them.
     // If the scene is entirely owned by this state and not managed globally for gameplay,
@@ -48,13 +55,13 @@ void SinglePlayerState::Render(Game* /*game*/)
 
 void SinglePlayerState::SetupPlayers(dae::Scene& scene)
 {
-    std::cout << "[SinglePlayerState::SetupPlayers] Initializing level for scene: " << scene.GetName() << std::endl;
+    std::cout << "[SinglePlayerState::SetupPlayers] Initializing level for scene: " << scene.GetName() << "\n";
 
     // 1. Load UI Font and create instruction text
-    auto font = dae::ResourceManager::GetInstance().LoadFont("Fonts/Lingua.otf", 16);
+    auto font = dae::ResourceManager::GetInstance().LoadFont("Fonts/Pixel_NES.otf", 16);
     if (!font)
     {
-        std::cerr << "[SinglePlayerState::SetupPlayers] CRITICAL ERROR: Failed to load font 'Fonts/Lingua.otf'." << std::endl;
+        std::cerr << "[SinglePlayerState::SetupPlayers] CRITICAL ERROR: Failed to load font 'Fonts/Pixel_NES.otf'." << "\n";
     }
     else
     {
@@ -77,36 +84,36 @@ void SinglePlayerState::SetupPlayers(dae::Scene& scene)
         }
 
         scene.Add(textPlayer1);
-        std::cout << "[SinglePlayerState::SetupPlayers] Added instruction text." << std::endl;
+        std::cout << "[SinglePlayerState::SetupPlayers] Added instruction text." << "\n";
     }
 
     // 2. Construct the level file path using ResourceManager's data path
     std::string baseDataPath = dae::ResourceManager::GetInstance().GetDataPath().string();
-    std::cout << "[SinglePlayerState::SetupPlayers] ResourceManager::GetDataPath() returned: '" << baseDataPath << "'" << std::endl;
+    std::cout << "[SinglePlayerState::SetupPlayers] ResourceManager::GetDataPath() returned: '" << baseDataPath << "'" << "\n";
 
     // Ensure baseDataPath ends with a slash if it doesn't already.
     // This is important for correct path joining.
     if (!baseDataPath.empty() && baseDataPath.back() != '/' && baseDataPath.back() != '\\')
     {
         baseDataPath += '/';
-        std::cout << "[SinglePlayerState::SetupPlayers] Added trailing slash to baseDataPath. Now: '" << baseDataPath << "'" << std::endl;
+        std::cout << "[SinglePlayerState::SetupPlayers] Added trailing slash to baseDataPath. Now: '" << baseDataPath << "'" << "\n";
     }
 
     std::string relativeLevelPath = "Levels/1/Data.txt"; // Path relative to the data root
     std::string levelFilePath = baseDataPath + relativeLevelPath;
 
-    std::cout << "[SinglePlayerState::SetupPlayers] Attempting to load level using LevelParser with dynamic path: '" << levelFilePath << "'" << std::endl;
+    std::cout << "[SinglePlayerState::SetupPlayers] Attempting to load level using LevelParser with dynamic path: '" << levelFilePath << "'" << "\n";
 
     // 3. Load the level using LevelParser
     bool loadResult = m_LevelParser.LoadLevel(scene, levelFilePath, true); // true for single-player
     if (!loadResult)
     {
-        std::cerr << "[SinglePlayerState::SetupPlayers] CRITICAL ERROR: LevelParser::LoadLevel failed for file: '" << levelFilePath << "'" << std::endl;
+        std::cerr << "[SinglePlayerState::SetupPlayers] CRITICAL ERROR: LevelParser::LoadLevel failed for file: '" << levelFilePath << "'" << "\n";
     }
     else
     {
-        std::cout << "[SinglePlayerState::SetupPlayers] LevelParser::LoadLevel succeeded for file: '" << levelFilePath << "'" << std::endl;
+        std::cout << "[SinglePlayerState::SetupPlayers] LevelParser::LoadLevel succeeded for file: '" << levelFilePath << "'" << "\n";
     }
 
-    std::cout << "[SinglePlayerState::SetupPlayers] Finished." << std::endl;
+    std::cout << "[SinglePlayerState::SetupPlayers] Finished." << "\n";
 }
