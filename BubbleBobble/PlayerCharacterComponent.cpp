@@ -3,6 +3,7 @@
 #include <algorithm> 
 #include <iostream>  
 #include <typeinfo>  
+#include <iomanip> 
 
 #include "GameObject.h"
 #include "TransformComponent.h"
@@ -25,7 +26,7 @@ namespace dae
         m_Direction(0.0f, 0.0f),
         m_VerticalVelocity(0.0f),
         m_IsOnGround(false),
-        m_JumpStrength(600.0f),
+        m_JumpStrength(550.0f),
         m_Gravity(981.0f),
         m_pTransform(nullptr),
         m_pPlayerCollider(nullptr),
@@ -124,89 +125,176 @@ namespace dae
         }
     }
 
-    void PlayerCharacterComponent::HandleCollisions(float /*deltaTime*/)
-    {
-        if (!GetOwner() || !m_pPlayerCollider || !m_pTransform) return;
 
+
+
+
+
+
+    void dae::PlayerCharacterComponent::HandleCollisions(float /*deltaTime*/)
+    {
+        if (!GetOwner())
+        {
+            std::cout << "[CollisionDebug] HandleCollisions: GetOwner() is null." << std::endl;
+            return;
+        }
+        if (!m_pPlayerCollider)
+        {
+            std::cout << "[CollisionDebug] HandleCollisions: m_pPlayerCollider is null." << std::endl;
+            return;
+        }
+        if (!m_pTransform)
+        {
+            std::cout << "[CollisionDebug] HandleCollisions: m_pTransform is null." << std::endl;
+            return;
+        }
         if (!m_pCurrentScene)
         {
-            glm::vec2 currentPosAfterTentativeMove = m_pTransform->GetPosition();
-            const float fallbackGroundY = 676.0f;
-            if (currentPosAfterTentativeMove.y >= fallbackGroundY)
+            std::cout << "[CollisionDebug] HandleCollisions: m_pCurrentScene is null. Using fallback ground logic." << std::endl;
+
+            glm::vec2 currentPos = m_pTransform->GetPosition();
+            float groundY = 600.0f - m_pPlayerCollider->GetBoundingBox().height;
+            if (currentPos.y >= groundY && m_VerticalVelocity >= 0)
             {
-                glm::vec2 finalPos = currentPosAfterTentativeMove;
-                finalPos.y = fallbackGroundY;
+                currentPos.y = groundY;
+                m_pTransform->SetPosition(currentPos.x, currentPos.y);
+                m_pPlayerCollider->SetPosition(currentPos.x, currentPos.y);
                 m_VerticalVelocity = 0.0f;
                 m_IsOnGround = true;
-                m_pTransform->SetPosition(finalPos.x, finalPos.y);
-                if (m_pPlayerCollider) m_pPlayerCollider->SetPosition(finalPos.x, finalPos.y);
+            }
+            else
+            {
+                m_IsOnGround = false;
             }
             return;
         }
 
-        AABB playerAABB = m_pPlayerCollider->GetBoundingBox();
-        glm::vec2 resolvedPlayerPos = m_pTransform->GetPosition();
+        std::cout << "[CollisionDebug] HandleCollisions: m_pCurrentScene is OK. Starting main collision checks." << std::endl;
+
         bool landedThisFrame = false;
+        glm::vec2 resolvedPlayerPos = m_pTransform->GetPosition();
+        AABB playerAABB = m_pPlayerCollider->GetBoundingBox();
 
         const auto& gameObjects = m_pCurrentScene->GetAllGameObjects();
-
-        for (const auto& otherGameObjectSharedPtr : gameObjects)
+        for (const auto& otherGameObject : gameObjects)
         {
-            if (!otherGameObjectSharedPtr || otherGameObjectSharedPtr.get() == GetOwner()) continue;
+            if (otherGameObject.get() == GetOwner()) continue;
 
-            GameObject* otherGameObjectPtr = otherGameObjectSharedPtr.get();
-            auto otherColliderSharedPtr = otherGameObjectPtr->GetComponent<BoxCollisionComponent>();
+            auto otherCollider = otherGameObject->GetComponent<BoxCollisionComponent>();
+            if (!otherCollider) continue;
 
-            if (!otherColliderSharedPtr) continue;
-
-            BoxCollisionComponent* otherColliderRawPtr = otherColliderSharedPtr.get();
+            BoxCollisionComponent* otherColliderRawPtr = otherCollider.get();
             AABB otherAABB = otherColliderRawPtr->GetBoundingBox();
+            ColliderTag otherTag = otherColliderRawPtr->GetTag();
 
             if (m_pPlayerCollider->IsColliding(*otherColliderRawPtr, m_VerticalVelocity))
             {
-                ColliderTag otherTag = otherColliderRawPtr->GetTag();
+                std::cout << "[CollisionDebug] IsColliding/Overlap TRUE with object tagged: " << static_cast<int>(otherTag)
+                    << " (Player VelY: " << m_VerticalVelocity << ")" << std::endl;
+                std::cout << "  Player AABB - L: " << playerAABB.GetLeft() << " T: " << playerAABB.GetTop()
+                    << " R: " << playerAABB.GetRight() << " B: " << playerAABB.GetBottom()
+                    << " W: " << playerAABB.width << " H: " << playerAABB.height << std::endl;
+                std::cout << "  Other AABB  - L: " << otherAABB.GetLeft() << " T: " << otherAABB.GetTop()
+                    << " R: " << otherAABB.GetRight() << " B: " << otherAABB.GetBottom()
+                    << " W: " << otherAABB.width << " H: " << otherAABB.height << " (Tag: " << static_cast<int>(otherTag) << ")" << std::endl;
 
-                if (m_VerticalVelocity >= 0.f &&
-                    (otherTag == ColliderTag::SMALL_TILE || otherTag == ColliderTag::BIG_TILE))
+                glm::vec2 currentPosition = m_pTransform->GetPosition();
+                glm::vec2 playerCenter = { playerAABB.GetLeft() + playerAABB.width / 2.0f, playerAABB.GetTop() + playerAABB.height / 2.0f };
+                glm::vec2 tileCenter = { otherAABB.GetLeft() + otherAABB.width / 2.0f, otherAABB.GetTop() + otherAABB.height / 2.0f };
+
+                float deltaX = playerCenter.x - tileCenter.x;
+                float deltaY = playerCenter.y - tileCenter.y;
+
+                float combinedHalfWidths = playerAABB.width / 2.0f + otherAABB.width / 2.0f;
+                float combinedHalfHeights = playerAABB.height / 2.0f + otherAABB.height / 2.0f;
+
+                float overlapX = combinedHalfWidths - std::abs(deltaX);
+                float overlapY = combinedHalfHeights - std::abs(deltaY);
+
+                std::cout << "    OverlapX: " << overlapX << ", OverlapY: " << overlapY << std::endl;
+
+                if (otherTag == ColliderTag::BIG_TILE)
                 {
-                    float playerFeet = playerAABB.GetBottom();
-                    float tileTop = otherAABB.GetTop();
-
-                    if (playerFeet >= tileTop && (playerAABB.GetTop() < tileTop + playerAABB.height * 0.5f))
+                    std::cout << "    [CollisionDebug] BIG_TILE collision." << std::endl;
+                    if (overlapX < overlapY && overlapX > 0)
                     {
-                        bool horizontalOverlap = (playerAABB.GetLeft() < otherAABB.GetRight() &&
-                            playerAABB.GetRight() > otherAABB.GetLeft());
-                        if (horizontalOverlap)
+                        std::cout << "      Resolving X axis. Player VelX related to m_Direction.x: " << m_Direction.x * m_Speed << std::endl;
+                        if (deltaX > 0)
                         {
-                            resolvedPlayerPos.y = tileTop - playerAABB.height;
-                            m_VerticalVelocity = 0.0f;
-                            landedThisFrame = true;
+                            currentPosition.x += overlapX;
+                            std::cout << "        Pushing player RIGHT to " << currentPosition.x << std::endl;
+                        }
+                        else
+                        {
+                            currentPosition.x -= overlapX;
+                            std::cout << "        Pushing player LEFT to " << currentPosition.x << std::endl;
+                        }
+                    }
+                    else if (overlapY > 0)
+                    {
+                        std::cout << "      Resolving Y axis. Player VelY = " << m_VerticalVelocity << std::endl;
+                        if (deltaY > 0)
+                        {
+                            currentPosition.y += overlapY;
+                            std::cout << "        Pushing player DOWN to " << currentPosition.y << std::endl;
+                            if (m_VerticalVelocity < 0) m_VerticalVelocity = 0;
+                        }
+                        else
+                        {
+                            currentPosition.y -= overlapY;
+                            std::cout << "        Pushing player UP to " << currentPosition.y << std::endl;
+                            if (m_VerticalVelocity >= 0)
+                            {
+                                currentPosition.y = otherAABB.GetTop() - playerAABB.height;
+                                std::cout << "          Refined Y for landing: " << currentPosition.y << std::endl;
+                                m_VerticalVelocity = 0.0f;
+                                landedThisFrame = true;
+                            }
+                        }
+                    }
+                    m_pTransform->SetPosition(currentPosition.x, currentPosition.y);
+                    if (m_pPlayerCollider) m_pPlayerCollider->SetPosition(currentPosition.x, currentPosition.y);
+                    playerAABB = m_pPlayerCollider->GetBoundingBox();
+                    break;
+                }
+                else if (otherTag == ColliderTag::SMALL_TILE)
+                {
+                    std::cout << "    [CollisionDebug] SMALL_TILE collision." << std::endl;
+                    if (m_VerticalVelocity >= 0.f)
+                    {
+                        float playerFeet = playerAABB.GetBottom();
+                        float tileTop = otherAABB.GetTop();
+                        if (playerFeet >= tileTop && (playerAABB.GetTop() < tileTop + playerAABB.height * 0.5f))
+                        {
+                            bool horizontalOverlap = (playerAABB.GetLeft() < otherAABB.GetRight() &&
+                                playerAABB.GetRight() > otherAABB.GetLeft());
+                            if (horizontalOverlap)
+                            {
+                                std::cout << "      SMALL_TILE: Player LANDING. TileTop: " << tileTop << ", PlayerHeight: " << playerAABB.height << std::endl;
+                                resolvedPlayerPos.y = tileTop - playerAABB.height;
+                                m_VerticalVelocity = 0.0f;
+                                landedThisFrame = true;
+                                std::cout << "        New Y: " << resolvedPlayerPos.y << std::endl;
+                                m_pTransform->SetPosition(resolvedPlayerPos.x, resolvedPlayerPos.y);
+                                if (m_pPlayerCollider) m_pPlayerCollider->SetPosition(resolvedPlayerPos.x, resolvedPlayerPos.y);
+                                playerAABB = m_pPlayerCollider->GetBoundingBox();
+                                break;
+                            }
                         }
                     }
                 }
             }
         }
-
-        if (landedThisFrame)
-        {
-            m_IsOnGround = true;
-            m_pTransform->SetPosition(resolvedPlayerPos.x, resolvedPlayerPos.y);
-            if (m_pPlayerCollider) m_pPlayerCollider->SetPosition(resolvedPlayerPos.x, resolvedPlayerPos.y);
-        }
-        else
-        {
-            glm::vec2 currentPosAfterCollisionLogic = m_pTransform->GetPosition();
-            const float fallbackGroundY = 676.0f;
-            if (currentPosAfterCollisionLogic.y >= fallbackGroundY)
-            {
-                currentPosAfterCollisionLogic.y = fallbackGroundY;
-                m_VerticalVelocity = 0.0f;
-                m_IsOnGround = true;
-                m_pTransform->SetPosition(currentPosAfterCollisionLogic.x, currentPosAfterCollisionLogic.y);
-                if (m_pPlayerCollider) m_pPlayerCollider->SetPosition(currentPosAfterCollisionLogic.x, currentPosAfterCollisionLogic.y);
-            }
-        }
+        m_IsOnGround = landedThisFrame;
     }
+
+
+
+
+
+
+
+
 
     void PlayerCharacterComponent::Render() const {}
 

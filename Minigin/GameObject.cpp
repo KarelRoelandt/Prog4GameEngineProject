@@ -171,7 +171,7 @@ namespace dae
                 glm::vec3 newLocalPosition = glm::vec3(newLocalMatrix[3]);
 
                 // Extract scale
-                glm::vec3 newLocalScale;
+                glm::vec3 newLocalScale{};
                 newLocalScale.x = glm::length(glm::vec3(newLocalMatrix[0]));
                 newLocalScale.y = glm::length(glm::vec3(newLocalMatrix[1]));
                 newLocalScale.z = glm::length(glm::vec3(newLocalMatrix[2]));

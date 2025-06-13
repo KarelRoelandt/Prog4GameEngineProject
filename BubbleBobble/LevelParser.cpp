@@ -183,8 +183,10 @@ void LevelParser::ParsePlayer(dae::Scene& scene, const std::string& lineData, bo
     // std::cout << "[LevelParser] Added PLAYER BoxCollisionComponent to " << player->GetName() << " at (" << worldX << "," << worldY << ")" << "\n";
     auto playerComponent = player->AddComponent<dae::PlayerCharacterComponent>(100.0f);
     playerComponent->BindInputs(isKeyboard, m_currentPlayerNumber);
+    playerComponent->SetCurrentScene(&scene);
     auto healthComponent = player->AddComponent<dae::HealthComponent>(player.get(), 3);
     auto scoreComponent = player->AddComponent<dae::ScoreComponent>(player.get(), 0);
+   
 
     scene.Add(player);
 
@@ -233,8 +235,8 @@ void LevelParser::ParseZenChan(dae::Scene& scene, const std::string& lineData)
     textureComp->SetRenderSize(m_zenChanWidth, m_zenChanHeight);
     enemy->AddComponent<dae::RenderComponent>();
 
-    // TODO: Consider adding BoxCollisionComponent for ZenChan here
-    // enemy->AddComponent<dae::BoxCollisionComponent>(worldX, worldY, m_zenChanWidth, m_zenChanHeight, dae::ColliderTag::ENEMY); // Assuming you add ENEMY to ColliderTag
+    
+    enemy->AddComponent<dae::BoxCollisionComponent>(worldX, worldY, m_zenChanWidth, m_zenChanHeight, dae::ColliderTag::ENEMY); // Assuming you add ENEMY to ColliderTag
     // std::cout << "[LevelParser] Added ENEMY BoxCollisionComponent to " << enemy->GetName() << " at (" << worldX << "," << worldY << ")" << "\n";
 
     scene.Add(enemy);

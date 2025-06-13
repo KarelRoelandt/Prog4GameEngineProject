@@ -27,6 +27,7 @@ namespace dae
 	enum class ColliderTag
 	{
 	    PLAYER,
+		ENEMY,
 	    SMALL_TILE,
 	    BIG_TILE,   // New tag for big tiles
 	    GENERIC     // Default for other collidable objects
