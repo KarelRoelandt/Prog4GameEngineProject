@@ -124,12 +124,12 @@ namespace dae
                 {
                     if (controller.IsButtonPressed(button))
                     {
-                        std::cout << "Controller " << controller.GetIndex() << ": Button pressed.\n";
+                        //std::cout << "Controller " << controller.GetIndex() << ": Button pressed.\n";
                         HandleGamepadButtonEvent(button, InputState::Pressed);
                     }
                     if (controller.IsButtonReleased(button))
                     {
-                        std::cout << "Controller " << controller.GetIndex() << ": Button released.\n";
+                        //std::cout << "Controller " << controller.GetIndex() << ": Button released.\n";
                         HandleGamepadButtonEvent(button, InputState::Released);
                     }
                     if (controller.IsButtonDown(button))

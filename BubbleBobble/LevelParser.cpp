@@ -179,7 +179,7 @@ void LevelParser::ParsePlayer(dae::Scene& scene, const std::string& lineData, bo
     textureComp->SetTexture(m_currentPlayerNumber == 1 ? m_Player1TexturePath : m_Player2TexturePath);
     textureComp->SetRenderSize(m_playerWidth, m_playerHeight);
     player->AddComponent<dae::RenderComponent>();
-    player->AddComponent<dae::BoxCollisionComponent>(worldX, worldY, m_playerWidth, m_playerHeight, dae::ColliderTag::PLAYER);
+    player->AddComponent<dae::BoxCollisionComponent>(worldX, worldY, m_playerWidth - 4, m_playerHeight - 0, dae::ColliderTag::PLAYER);
     // std::cout << "[LevelParser] Added PLAYER BoxCollisionComponent to " << player->GetName() << " at (" << worldX << "," << worldY << ")" << "\n";
     auto playerComponent = player->AddComponent<dae::PlayerCharacterComponent>(100.0f);
     playerComponent->BindInputs(isKeyboard, m_currentPlayerNumber);
