@@ -77,9 +77,6 @@
     <ClInclude Include="HealthDisplay.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MoveCommand.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="PlayerCharacterComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>

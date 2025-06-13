@@ -1,4 +1,7 @@
 // PlayerCharacterComponent.cpp
+
+#include <algorithm>
+
 #include "PlayerCharacterComponent.h"
 #include "GameObject.h"
 #include "TransformComponent.h"
@@ -10,7 +13,8 @@
 #include "PlayerRunState.h"
 #include "PlayerIdleState.h"
 #include "ServiceLocator.h"
-#include <algorithm>
+
+#include "PlayerCommands.h"
 
 namespace dae
 {
@@ -18,6 +22,7 @@ namespace dae
         : BaseComponent(owner)
         , m_Speed(speed)
         , m_Direction(0.0f, 0.0f)
+        , m_pTransform(nullptr)
         , m_pSoundService(ServiceLocator::GetSoundService())
         , m_pStateMachine(nullptr)
     {
@@ -105,6 +110,11 @@ namespace dae
         }
     }
 
+    void PlayerCharacterComponent::Jump()
+    {
+        std::cout << "[PlayerCharacterComponent] Jump triggered!\n";
+    }
+
     void PlayerCharacterComponent::EnsureStateMachine()
     {
         if (!m_pStateMachine)
@@ -117,26 +127,33 @@ namespace dae
     void PlayerCharacterComponent::BindInputs(bool isKeyboard, int /*controllerIdx*/)
     {
         InputManager& inputManager = InputManager::GetInstance();
-        std::shared_ptr<PlayerCharacterComponent> sharedThis = std::shared_ptr<PlayerCharacterComponent>(this, [](PlayerCharacterComponent*) {});
+        // Get the real shared_ptr from the GameObject
+        std::shared_ptr<PlayerCharacterComponent> sharedThis = GetOwner()->GetComponent<PlayerCharacterComponent>();
 
         if (isKeyboard)
         {
-            inputManager.BindCommand(SDLK_a, InputState::Down, std::make_shared<MoveCommand>(sharedThis, -1.0f, 0.0f));
-            inputManager.BindCommand(SDLK_d, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 1.0f, 0.0f));
-            inputManager.BindCommand(SDLK_a, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, -1.0f, 0.0f));
-            inputManager.BindCommand(SDLK_d, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 1.0f, 0.0f));
-            inputManager.BindCommand(SDLK_c, InputState::Pressed, std::make_shared<DamageCommand>(sharedThis, 1));
-            inputManager.BindCommand(SDLK_z, InputState::Pressed, std::make_shared<ScoreCommand>(sharedThis, 10));
-            inputManager.BindCommand(SDLK_x, InputState::Pressed, std::make_shared<ScoreCommand>(sharedThis, 100));
+            inputManager.BindCommand(SDLK_a, InputState::Down, std::make_shared<dae::MoveCommand>(sharedThis, -1.0f, 0.0f));
+            inputManager.BindCommand(SDLK_d, InputState::Down, std::make_shared<dae::MoveCommand>(sharedThis, 1.0f, 0.0f));
+
+            inputManager.BindCommand(SDLK_a, InputState::Released, std::make_shared<dae::StopMoveCommand>(sharedThis, -1.0f, 0.0f));
+            inputManager.BindCommand(SDLK_d, InputState::Released, std::make_shared<dae::StopMoveCommand>(sharedThis, 1.0f, 0.0f));
+
+            inputManager.BindCommand(SDLK_c, InputState::Pressed, std::make_shared<dae::DamageCommand>(sharedThis, 1));
+            inputManager.BindCommand(SDLK_z, InputState::Pressed, std::make_shared<dae::ScoreCommand>(sharedThis, 10));
+            inputManager.BindCommand(SDLK_x, InputState::Pressed, std::make_shared<dae::ScoreCommand>(sharedThis, 100));
         }
         else
         {
-            inputManager.BindControllerCommand(GamepadButton::DPadLeft, InputState::Down, std::make_shared<MoveCommand>(sharedThis, -1.0f, 0.0f));
-            inputManager.BindControllerCommand(GamepadButton::DPadRight, InputState::Down, std::make_shared<MoveCommand>(sharedThis, 1.0f, 0.0f));
-            inputManager.BindControllerCommand(GamepadButton::DPadLeft, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, -1.0f, 0.0f));
-            inputManager.BindControllerCommand(GamepadButton::DPadRight, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 1.0f, 0.0f));
-            inputManager.BindControllerCommand(GamepadButton::ButtonX, InputState::Pressed, std::make_shared<DamageCommand>(sharedThis, 1));
-            inputManager.BindControllerCommand(GamepadButton::ButtonY, InputState::Pressed, std::make_shared<ScoreCommand>(sharedThis, 10));
+            inputManager.BindControllerCommand(GamepadButton::DPadLeft, InputState::Down, std::make_shared<dae::MoveCommand>(sharedThis, -1.0f, 0.0f));
+            inputManager.BindControllerCommand(GamepadButton::DPadRight, InputState::Down, std::make_shared<dae::MoveCommand>(sharedThis, 1.0f, 0.0f));
+
+            inputManager.BindControllerCommand(GamepadButton::DPadLeft, InputState::Released, std::make_shared<dae::StopMoveCommand>(sharedThis, -1.0f, 0.0f));
+            inputManager.BindControllerCommand(GamepadButton::DPadRight, InputState::Released, std::make_shared<dae::StopMoveCommand>(sharedThis, 1.0f, 0.0f));
+
+            inputManager.BindControllerCommand(GamepadButton::ButtonA, InputState::Pressed, std::make_shared<dae::JumpCommand>(sharedThis));
+            inputManager.BindControllerCommand(GamepadButton::ButtonX, InputState::Pressed, std::make_shared<dae::DamageCommand>(sharedThis, 1));
+            inputManager.BindControllerCommand(GamepadButton::ButtonY, InputState::Pressed, std::make_shared<dae::ScoreCommand>(sharedThis, 10));
         }
     }
+
 }

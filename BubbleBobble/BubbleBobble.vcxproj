@@ -193,7 +193,6 @@
     <ClInclude Include="HealthDisplay.h" />
     <ClInclude Include="HighScoreState.h" />
     <ClInclude Include="LevelParser.h" />
-    <ClInclude Include="MoveCommand.h" />
     <ClInclude Include="Observer.h" />
     <ClInclude Include="PlayerCharacterComponent.h" />
     <ClInclude Include="PlayerCommands.h" />
