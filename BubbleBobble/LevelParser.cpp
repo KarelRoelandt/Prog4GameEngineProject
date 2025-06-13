@@ -125,12 +125,8 @@ void LevelParser::ParseBigTile(dae::Scene& scene, const std::string& lineData, b
         tile->AddComponent<dae::RenderComponent>();
     }
 
-    // --- ADDED: Collision Component for BigTile ---
-    // Add collider regardless of visibility, as invisible walls are common.
-    // If truly no collision for invisible ones, add a condition: if (!isInvisible)
     tile->AddComponent<dae::BoxCollisionComponent>(worldX, worldY, m_bigTileWidth, m_bigTileHeight, dae::ColliderTag::BIG_TILE);
     std::cout << "[LevelParser] Added BIG_TILE BoxCollisionComponent to " << tile->GetName() << " at (" << worldX << "," << worldY << ")" << "\n";
-    // --- END ADDED ---
 
     scene.Add(tile);
 }
@@ -154,14 +150,11 @@ void LevelParser::ParseSmallTile(dae::Scene& scene, const std::string& lineData,
     texture->SetRenderSize(m_smallTileWidth, m_smallTileHeight);
     tile->AddComponent<dae::RenderComponent>();
 
-    // --- ADDED: Collision Component for SmallTile (non-fake) ---
     if (!isFake)
     {
         tile->AddComponent<dae::BoxCollisionComponent>(worldX, worldY, m_smallTileWidth, m_smallTileHeight, dae::ColliderTag::SMALL_TILE);
         std::cout << "[LevelParser] Added SMALL_TILE BoxCollisionComponent to " << tile->GetName() << " at (" << worldX << "," << worldY << ")" << "\n";
     }
-    // --- END ADDED ---
-
     scene.Add(tile);
 }
 
@@ -186,13 +179,12 @@ void LevelParser::ParsePlayer(dae::Scene& scene, const std::string& lineData, bo
     textureComp->SetTexture(m_currentPlayerNumber == 1 ? m_Player1TexturePath : m_Player2TexturePath);
     textureComp->SetRenderSize(m_playerWidth, m_playerHeight);
     player->AddComponent<dae::RenderComponent>();
+    player->AddComponent<dae::BoxCollisionComponent>(worldX, worldY, m_playerWidth, m_playerHeight, dae::ColliderTag::PLAYER);
+    // std::cout << "[LevelParser] Added PLAYER BoxCollisionComponent to " << player->GetName() << " at (" << worldX << "," << worldY << ")" << "\n";
     auto playerComponent = player->AddComponent<dae::PlayerCharacterComponent>(100.0f);
     playerComponent->BindInputs(isKeyboard, m_currentPlayerNumber);
     auto healthComponent = player->AddComponent<dae::HealthComponent>(player.get(), 3);
     auto scoreComponent = player->AddComponent<dae::ScoreComponent>(player.get(), 0);
-
-	player->AddComponent<dae::BoxCollisionComponent>(worldX, worldY, m_playerWidth, m_playerHeight, dae::ColliderTag::PLAYER);
-    // std::cout << "[LevelParser] Added PLAYER BoxCollisionComponent to " << player->GetName() << " at (" << worldX << "," << worldY << ")" << "\n";
 
     scene.Add(player);
 

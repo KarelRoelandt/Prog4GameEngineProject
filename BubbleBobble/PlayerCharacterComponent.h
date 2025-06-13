@@ -14,7 +14,8 @@ class Observer;  // Forward declaration of Observer
 
 namespace dae
 {
-    class GameObject;
+	class BoxCollisionComponent;
+	class GameObject;
     class TransformComponent;
     class InputManager;
 
@@ -25,6 +26,7 @@ namespace dae
         ~PlayerCharacterComponent() = default;
 
     	void Update(float deltaTime) override;
+        void HandleCollisions(float);
         void Render() const override;
 
         void Move(float x, float y); // Method to be called by MoveCommand
@@ -46,9 +48,10 @@ namespace dae
         glm::vec2 m_Direction{ 0.0f, 0.0f };
 
         float m_VerticalVelocity{ 0.0f };
-        bool m_IsOnGround{ true }; // Set to true when the player is on the ground
-        const float m_JumpStrength{ 500.0f }; // Adjust as needed
-        const float m_Gravity{ 900.0f };      // Adjust as needed
+        bool m_IsOnGround{}; // Set to true when the player is on the ground
+        const float m_JumpStrength{ 550.0f }; // Adjust as needed
+        const float m_Gravity{ 991.0f };      // Adjust as needed
+        BoxCollisionComponent* m_pPlayerCollider = nullptr;
 
         TransformComponent* m_pTransform{ nullptr };
 
