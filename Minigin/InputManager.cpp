@@ -134,7 +134,7 @@ namespace dae
                     }
                     if (controller.IsButtonDown(button))
                     {
-                        std::cout << "Controller " << controller.GetIndex() << ": Button down.\n";
+                        //std::cout << "Controller " << controller.GetIndex() << ": Button down.\n";
                         HandleGamepadButtonEvent(button, InputState::Down);
                     }
                 }
