@@ -45,6 +45,11 @@ namespace dae
         float m_Speed;
         glm::vec2 m_Direction{ 0.0f, 0.0f };
 
+        float m_VerticalVelocity{ 0.0f };
+        bool m_IsOnGround{ true }; // Set to true when the player is on the ground
+        const float m_JumpStrength{ 500.0f }; // Adjust as needed
+        const float m_Gravity{ 900.0f };      // Adjust as needed
+
         TransformComponent* m_pTransform{ nullptr };
 
         std::shared_ptr<ISoundService> m_pSoundService;

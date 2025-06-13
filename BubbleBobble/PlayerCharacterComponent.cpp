@@ -65,6 +65,27 @@ namespace dae
                 m_pTransform->SetPosition(position.x, position.y);
             }
         }
+
+        if (!m_IsOnGround)
+        {
+            m_VerticalVelocity += m_Gravity * deltaTime;
+            if (m_pTransform)
+            {
+                glm::vec2 position = m_pTransform->GetPosition();
+                position.y += m_VerticalVelocity * deltaTime;
+
+                // Simple ground collision (replace 500.0f with your ground Y)
+                if (position.y >= 675.0f)
+                {
+                    position.y = 675.0f;
+                    m_VerticalVelocity = 0.0f;
+                    m_IsOnGround = true;
+                }
+                m_pTransform->SetPosition(position.x, position.y);
+            }
+        }
+
+
     }
 
     void PlayerCharacterComponent::Render() const
@@ -112,7 +133,12 @@ namespace dae
 
     void PlayerCharacterComponent::Jump()
     {
-        std::cout << "[PlayerCharacterComponent] Jump triggered!\n";
+        if (m_IsOnGround)
+        {
+            m_VerticalVelocity = -m_JumpStrength; // Negative for upward movement (Y axis down)
+            m_IsOnGround = false;
+            std::cout << "[PlayerCharacterComponent] Jump triggered!\n";
+        }
     }
 
     void PlayerCharacterComponent::EnsureStateMachine()
