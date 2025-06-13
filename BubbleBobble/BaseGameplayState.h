@@ -20,6 +20,9 @@ public:
     void Render(Game* game) override;
     void Exit(Game* game) override;
 
+    static constexpr float SCREEN_WIDTH = 1600.0f;
+    static constexpr float SCREEN_HEIGHT = 900.0f;
+
 protected:
     // Common functionality
     void SetupCommonUI(dae::Scene& scene);

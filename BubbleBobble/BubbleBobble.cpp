@@ -4,10 +4,15 @@
 #endif
 #endif
 
+#include <iostream>
+
 #include "Game.h"
 #include "StartMenuState.h"
 #include "Minigin.h"
 #include "InputManager.h"
+#include "ServiceLocator.h"
+#include "ISoundService.h"
+
 
 // Global pointer to the engine instance
 dae::Minigin* g_Engine = nullptr;
@@ -15,7 +20,7 @@ dae::Minigin* g_Engine = nullptr;
 int main(int, char* [])
 {
     // Initialize engine once at the application level
-    dae::Minigin engine("../BubbleBobble/Data/");
+    dae::Minigin engine(1600, 900, "../BubbleBobble/Data/");
     //engine.Initialize("");
 
     // Store engine reference in a globally accessible way
@@ -34,7 +39,7 @@ int main(int, char* [])
         });
 
     // Shutdown sound service before engine cleanup
-    ServiceLocator::GetSoundService()->Shutdown();
+	ServiceLocator::GetSoundService()->Shutdown();
 
     // Cleanup engine at the end
     engine.Cleanup();

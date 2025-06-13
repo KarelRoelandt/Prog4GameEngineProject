@@ -9,10 +9,10 @@ namespace dae
 	class Minigin
 	{
 	public:
-		explicit Minigin(const std::string& dataPath);
+		Minigin(int width, int height, const std::string& dataPath);
 		~Minigin();
 
-		void Initialize(const std::string& dataPath);
+		void Initialize(int width, int height, const std::string& dataPath);
 
 		Minigin(const Minigin& other) = delete;
 		Minigin(Minigin&& other) = delete;

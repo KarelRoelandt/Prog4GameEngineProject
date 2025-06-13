@@ -83,9 +83,9 @@ static void PrintSDLVersion()
         version.major, version.minor, version.patch);
 }
 
-dae::Minigin::Minigin(const std::string& dataPath)
+dae::Minigin::Minigin(int width, int height, const std::string& dataPath)
 {
-	Initialize(dataPath);
+	Initialize(width, height, dataPath);
 }
 
 dae::Minigin::~Minigin()
@@ -96,7 +96,7 @@ dae::Minigin::~Minigin()
     SDL_Quit();
 }
 
-void dae::Minigin::Initialize(const std::string& dataPath)
+void dae::Minigin::Initialize(int width, int height, const std::string& dataPath)
 {
     if (isInitialized)
     {
@@ -114,8 +114,8 @@ void dae::Minigin::Initialize(const std::string& dataPath)
         "Programming 4 assignment - 2DAE19 Karel Roelandt",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        1024,
-        580,
+        width,
+        height,
         SDL_WINDOW_OPENGL
     );
     if (g_window == nullptr)

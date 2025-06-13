@@ -175,6 +175,7 @@
     <ClCompile Include="ScoreComponent.cpp" />
     <ClCompile Include="ScoreDisplay.cpp" />
     <ClCompile Include="SinglePlayerState.cpp" />
+    <ClCompile Include="StartMenuState.cpp" />
     <ClCompile Include="TwoPlayerCoopState.cpp" />
     <ClCompile Include="VersusState.cpp" />
   </ItemGroup>

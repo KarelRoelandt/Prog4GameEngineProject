@@ -2,18 +2,23 @@
 
 #include <iostream>
 
+#include "Game.h"
+#include "Scene.h"
+
 #include "GameObject.h"
-#include "Game.h" 
 
 #include "BaseGameplayState.h"
 #include "HighScoreState.h"
+
 #include "InputManager.h"
-#include "RenderComponent.h"
 #include "ServiceLocator.h"
-#include "TextureComponent.h"
-#include "TransformComponent.h"
 #include "SoundService.h"
 #include "SceneManager.h" 
+
+#include "RenderComponent.h"
+#include "TextureComponent.h"
+#include "TransformComponent.h"
+
 
 BaseGameplayState::LeaveGameCommand::LeaveGameCommand(Game* gamePtr)
     : m_Game(gamePtr)
@@ -64,15 +69,12 @@ void BaseGameplayState::Exit(Game* /*game*/)
 
 void BaseGameplayState::SetupCommonUI(dae::Scene& scene)
 {
-    float screenWidth = 1024;
-    float screenHeight = 580;
-
     auto background = std::make_shared<dae::GameObject>();
     auto textureComponent = background->AddComponent<dae::TextureComponent>();
-    textureComponent->SetTexture("background.tga");
-    textureComponent->SetRenderSize(screenWidth, screenHeight);
-    auto transformComponent = background->AddComponent<dae::TransformComponent>();
-    transformComponent->SetPosition(0, 0);
+    textureComponent->SetTexture("Branding/background.tga");
+    textureComponent->SetRenderSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+    //auto transformComponent = background->AddComponent<dae::TransformComponent>();
+    background->GetTransform()->SetPosition(0, 0);
     background->AddComponent<dae::RenderComponent>();
     scene.Add(background);
 }
