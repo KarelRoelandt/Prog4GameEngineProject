@@ -1,124 +1,105 @@
-#include "PlayerCharacterComponent.h" // Your header
+#include "PlayerCharacterComponent.h"
 
-#include <algorithm> // For std::clamp
-#include <iostream>  // For debug output // <<< MAKE SURE THIS IS INCLUDED
-#include <typeinfo>  // For typeid, if using it for state checks
+#include <algorithm> 
+#include <iostream>  
+#include <typeinfo>  
 
 #include "GameObject.h"
 #include "TransformComponent.h"
-#include "InputManager.h"
-#include "Controller.h" // For GamepadButton, if used by InputManager
 #include "HealthComponent.h"
 #include "ScoreComponent.h"
 #include "StateMachineComponent.h"
-#include "PlayerRunState.h"  // Assuming you have these state classes
-#include "PlayerIdleState.h" // Assuming you have these state classes
+#include "PlayerRunState.h"  
+#include "PlayerIdleState.h" 
 #include "ServiceLocator.h"
-#include "ISoundService.h"   // Use ISoundService interface
-#include "PlayerCommands.h" // For your command classes
-
-// Includes for collision logic
-#include "BoxCollisionComponent.h" // Defines AABB and ColliderTag (ensure ColliderTag is global or properly namespaced)
-#include "SceneManager.h"          // For dae::SceneManager (if GetInstance() is static and gives access to scene)
-#include "Scene.h"                 // For dae::Scene
+#include "ISoundService.h"   // For the type ISoundService
+#include "PlayerCommands.h" 
+#include "BoxCollisionComponent.h" 
+#include "Scene.h"                 
 
 namespace dae
 {
     PlayerCharacterComponent::PlayerCharacterComponent(GameObject* owner, float speed)
-        : BaseComponent(owner)
-        , m_Speed(speed)
-        // m_Direction, m_VerticalVelocity, m_IsOnGround, m_JumpStrength, m_Gravity,
-        // m_pPlayerCollider, m_pTransform, m_pStateMachine are initialized in-class via your .h
-        , m_pSoundService(ServiceLocator::GetSoundService())
+        : BaseComponent(owner),
+        m_Speed(speed),
+        m_Direction(0.0f, 0.0f),
+        m_VerticalVelocity(0.0f),
+        m_IsOnGround(false),
+        m_JumpStrength(600.0f),
+        m_Gravity(981.0f),
+        m_pTransform(nullptr),
+        m_pPlayerCollider(nullptr),
+        m_pStateMachine(nullptr),
+        m_pSoundService(nullptr),
+        m_pCurrentScene(nullptr)
     {
-        std::cout << "[PlayerCharacterComponent::Constructor] Called for GameObject: "
-            << (GetOwner() ? GetOwner()->GetName() : "NULL") // Assuming GetName() exists on GameObject for logging
-            << " with speed: " << speed << std::endl;
+        // Assuming ServiceLocator::GetSoundService() returns std::shared_ptr<ISoundService> (global)
+        std::shared_ptr<ISoundService> soundServiceShared = ServiceLocator::GetSoundService();
+        if (soundServiceShared)
+        {
+            m_pSoundService = soundServiceShared.get();
+        }
 
         if (GetOwner())
         {
             auto transformPtr = GetOwner()->GetComponent<TransformComponent>();
             if (transformPtr) m_pTransform = transformPtr.get();
-            else std::cerr << "[PlayerCharacterComponent::Constructor] Error: Owner GameObject is missing TransformComponent!" << std::endl;
+            else std::cerr << "[PCC::Constructor] Owner missing TransformComponent." << std::endl;
 
             auto colliderPtr = GetOwner()->GetComponent<BoxCollisionComponent>();
             if (colliderPtr) m_pPlayerCollider = colliderPtr.get();
-            else std::cerr << "[PlayerCharacterComponent::Constructor] Error: Owner GameObject is missing BoxCollisionComponent!" << std::endl;
+            else std::cerr << "[PCC::Constructor] Owner missing BoxCollisionComponent." << std::endl;
         }
         else
         {
-            std::cerr << "[PlayerCharacterComponent::Constructor] Error: Owner GameObject is null!" << std::endl;
+            std::cerr << "[PCC::Constructor] Owner GameObject is null." << std::endl;
         }
         EnsureStateMachine();
     }
 
+    void PlayerCharacterComponent::SetCurrentScene(Scene* scene)
+    {
+        m_pCurrentScene = scene;
+    }
+
     void PlayerCharacterComponent::Update(float deltaTime)
     {
-        // Add a static counter to limit log frequency
-        static int updateLogCounter = 0;
-        const int logFrequency = 30; // Log roughly every half-second if running at 60 FPS
+        if (!GetOwner()) return;
 
-        bool shouldLogThisFrame = (updateLogCounter % logFrequency == 0);
-
-        if (shouldLogThisFrame)
+        if (!m_pTransform)
         {
-            std::cout << "[PCC::Update START] Time: " << deltaTime
-                << ", Pos: (" << (m_pTransform ? std::to_string(m_pTransform->GetPosition().x) : "N/A") << "," << (m_pTransform ? std::to_string(m_pTransform->GetPosition().y) : "N/A")
-                << "), Dir.x: " << m_Direction.x << ", VVel: " << m_VerticalVelocity
-                << ", Grounded: " << (m_IsOnGround ? "T" : "F") << std::endl;
+            auto transformPtr = GetOwner()->GetComponent<TransformComponent>();
+            if (transformPtr) m_pTransform = transformPtr.get();
+            else { return; }
         }
-
-        if (!m_pTransform || !m_pPlayerCollider)
+        if (!m_pPlayerCollider && GetOwner())
         {
-            if (shouldLogThisFrame) std::cout << "[PCC::Update] Early exit: no transform or collider." << std::endl;
-            updateLogCounter++;
-            return;
+            auto colliderPtr = GetOwner()->GetComponent<BoxCollisionComponent>();
+            if (colliderPtr) m_pPlayerCollider = colliderPtr.get();
         }
 
         float horizontalMovement = 0.0f;
         if (std::abs(m_Direction.x) > 0.01f)
         {
             horizontalMovement = m_Direction.x * m_Speed * deltaTime;
-            if (shouldLogThisFrame) std::cout << "  [PCC::Update] HorizontalMovement calculated: " << horizontalMovement << " (Dir.x: " << m_Direction.x << ", Speed: " << m_Speed << ")" << std::endl;
         }
 
         if (!m_IsOnGround)
         {
-            float prevVVel = m_VerticalVelocity;
             m_VerticalVelocity += m_Gravity * deltaTime;
-            if (shouldLogThisFrame) std::cout << "  [PCC::Update] Applying gravity. VVel changed from " << prevVVel << " to " << m_VerticalVelocity << " (Grounded: F)" << std::endl;
         }
-        else
-        {
-            if (shouldLogThisFrame && m_VerticalVelocity != 0.f) std::cout << "  [PCC::Update] Grounded, VVel is " << m_VerticalVelocity << " (should ideally be 0 or small if just landed)" << std::endl;
-        }
-
 
         glm::vec2 currentPos = m_pTransform->GetPosition();
         glm::vec2 potentialPos = currentPos;
         potentialPos.x += horizontalMovement;
         potentialPos.y += m_VerticalVelocity * deltaTime;
 
-        if (shouldLogThisFrame && (std::abs(horizontalMovement) > 0.0001f || std::abs(m_VerticalVelocity * deltaTime) > 0.0001f))
-        {
-            std::cout << "  [PCC::Update] Potential move: dX=" << horizontalMovement << ", dY=" << (m_VerticalVelocity * deltaTime)
-                << ". OldPos: (" << currentPos.x << "," << currentPos.y << ")"
-                << " -> NewPos: (" << potentialPos.x << "," << potentialPos.y << ")" << std::endl;
-        }
-
-        m_IsOnGround = false; // Assume not grounded, HandleCollisions will correct
-        if (shouldLogThisFrame) std::cout << "  [PCC::Update] Set m_IsOnGround = false (before HandleCollisions)" << std::endl;
-
+        m_IsOnGround = false;
 
         m_pTransform->SetPosition(potentialPos.x, potentialPos.y);
         if (m_pPlayerCollider) m_pPlayerCollider->SetPosition(potentialPos.x, potentialPos.y);
-        if (shouldLogThisFrame) std::cout << "  [PCC::Update] Transform and Collider set to potentialPos: (" << potentialPos.x << "," << potentialPos.y << ")" << std::endl;
 
-
-        HandleCollisions(deltaTime); // This should set m_IsOnGround if applicable
-
-        if (shouldLogThisFrame) std::cout << "  [PCC::Update] After HandleCollisions, m_IsOnGround: " << (m_IsOnGround ? "T" : "F") << ", VVel: " << m_VerticalVelocity << std::endl;
-
+        HandleCollisions(deltaTime);
 
         EnsureStateMachine();
         if (m_pStateMachine)
@@ -129,7 +110,6 @@ namespace dae
                 {
                     if (!m_pStateMachine->GetCurrentState() || typeid(*m_pStateMachine->GetCurrentState()) != typeid(PlayerRunState))
                     {
-                        if (shouldLogThisFrame) std::cout << "  [PCC::Update] StateChange: Grounded & Moving -> PlayerRunState" << std::endl;
                         m_pStateMachine->ChangeState(std::make_unique<PlayerRunState>());
                     }
                 }
@@ -137,153 +117,140 @@ namespace dae
                 {
                     if (!m_pStateMachine->GetCurrentState() || typeid(*m_pStateMachine->GetCurrentState()) != typeid(PlayerIdleState))
                     {
-                        if (shouldLogThisFrame) std::cout << "  [PCC::Update] StateChange: Grounded & Still -> PlayerIdleState" << std::endl;
                         m_pStateMachine->ChangeState(std::make_unique<PlayerIdleState>());
                     }
                 }
             }
-            else // In Air
-            {
-                if (shouldLogThisFrame)
-                {
-                    std::cout << "  [PCC::Update] In Air. Current State: "
-                        << (m_pStateMachine->GetCurrentState() ? typeid(*m_pStateMachine->GetCurrentState()).name() : "None")
-                        << std::endl;
-                    // Potentially change to PlayerFallState or PlayerJumpState here if you have them
-                }
-            }
         }
-        if (shouldLogThisFrame) std::cout << "[PCC::Update END]" << std::endl;
-        updateLogCounter++;
     }
 
     void PlayerCharacterComponent::HandleCollisions(float /*deltaTime*/)
     {
         if (!GetOwner() || !m_pPlayerCollider || !m_pTransform) return;
 
-        static int collisionLogCounter = 0;
-        const int logFrequency = 30; // Log roughly every half-second
-        bool shouldLogThisFrame = (collisionLogCounter % logFrequency == 0);
-
-        // === CRITICAL SECTION: SCENE AND OBJECT ACCESS ===
-        dae::Scene* currentScene = nullptr;
-        // How to get the current scene in 'dae'?
-        // Example 1: currentScene = dae::SceneManager::GetInstance().GetActiveScene();
-        // Example 2: currentScene = GetOwner()->GetScene();
-        // CONSULT YOUR DAE ENGINE DOCUMENTATION/EXAMPLES FOR THIS.
-
-        if (!currentScene)
+        if (!m_pCurrentScene)
         {
-            if (shouldLogThisFrame) std::cout << "[PCC::HandleCollisions] No scene access, using fallback floor." << std::endl;
-
-            // Fallback: if no scene access, use a simple "absolute floor"
-            // Note: m_IsOnGround was set to false at the start of Update.
-            // This logic will set it to true if the condition is met.
-            glm::vec2 currentPosAfterTentativeMove = m_pTransform->GetPosition(); // Position after Update's tentative move
-            if (shouldLogThisFrame)
+            glm::vec2 currentPosAfterTentativeMove = m_pTransform->GetPosition();
+            const float fallbackGroundY = 676.0f;
+            if (currentPosAfterTentativeMove.y >= fallbackGroundY)
             {
-                std::cout << "  [PCC::HandleCollisions] Fallback check: Current Y=" << currentPosAfterTentativeMove.y
-                    << ", Floor Y=" << 676.0f << ", IsOnGround (before this check): " << (m_IsOnGround ? "T" : "F") // Will be F due to reset in Update
-                    << ", VVel: " << m_VerticalVelocity << std::endl;
-            }
-
-            if (currentPosAfterTentativeMove.y >= 676.0f)
-            {
-                if (shouldLogThisFrame) std::cout << "    [PCC::HandleCollisions] Player hit fallback floor at Y=" << currentPosAfterTentativeMove.y << ". Grounding player." << std::endl;
                 glm::vec2 finalPos = currentPosAfterTentativeMove;
-                finalPos.y = 676.0f;
+                finalPos.y = fallbackGroundY;
                 m_VerticalVelocity = 0.0f;
-                m_IsOnGround = true; // Player becomes grounded here by fallback
+                m_IsOnGround = true;
                 m_pTransform->SetPosition(finalPos.x, finalPos.y);
                 if (m_pPlayerCollider) m_pPlayerCollider->SetPosition(finalPos.x, finalPos.y);
             }
-            else
-            {
-                if (shouldLogThisFrame) std::cout << "    [PCC::HandleCollisions] Player above fallback floor. Y=" << currentPosAfterTentativeMove.y << std::endl;
-                // m_IsOnGround remains false if this path is taken (unless set true by actual tile collision later)
-            }
-            collisionLogCounter++;
             return;
         }
 
-        // ... (Your commented-out actual collision loop with tiles would go here) ...
-        /*
-        YOUR_ENGINE_SPECIFIC_COLLECTION_TYPE gameObjects; // = currentScene->YOUR_METHOD_TO_GET_OBJECTS();
-        // ... loop ...
-        */
-        // === END CRITICAL SECTION ===
-        collisionLogCounter++;
+        AABB playerAABB = m_pPlayerCollider->GetBoundingBox();
+        glm::vec2 resolvedPlayerPos = m_pTransform->GetPosition();
+        bool landedThisFrame = false;
+
+        const auto& gameObjects = m_pCurrentScene->GetAllGameObjects();
+
+        for (const auto& otherGameObjectSharedPtr : gameObjects)
+        {
+            if (!otherGameObjectSharedPtr || otherGameObjectSharedPtr.get() == GetOwner()) continue;
+
+            GameObject* otherGameObjectPtr = otherGameObjectSharedPtr.get();
+            auto otherColliderSharedPtr = otherGameObjectPtr->GetComponent<BoxCollisionComponent>();
+
+            if (!otherColliderSharedPtr) continue;
+
+            BoxCollisionComponent* otherColliderRawPtr = otherColliderSharedPtr.get();
+            AABB otherAABB = otherColliderRawPtr->GetBoundingBox();
+
+            if (m_pPlayerCollider->IsColliding(*otherColliderRawPtr, m_VerticalVelocity))
+            {
+                ColliderTag otherTag = otherColliderRawPtr->GetTag();
+
+                if (m_VerticalVelocity >= 0.f &&
+                    (otherTag == ColliderTag::SMALL_TILE || otherTag == ColliderTag::BIG_TILE))
+                {
+                    float playerFeet = playerAABB.GetBottom();
+                    float tileTop = otherAABB.GetTop();
+
+                    if (playerFeet >= tileTop && (playerAABB.GetTop() < tileTop + playerAABB.height * 0.5f))
+                    {
+                        bool horizontalOverlap = (playerAABB.GetLeft() < otherAABB.GetRight() &&
+                            playerAABB.GetRight() > otherAABB.GetLeft());
+                        if (horizontalOverlap)
+                        {
+                            resolvedPlayerPos.y = tileTop - playerAABB.height;
+                            m_VerticalVelocity = 0.0f;
+                            landedThisFrame = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (landedThisFrame)
+        {
+            m_IsOnGround = true;
+            m_pTransform->SetPosition(resolvedPlayerPos.x, resolvedPlayerPos.y);
+            if (m_pPlayerCollider) m_pPlayerCollider->SetPosition(resolvedPlayerPos.x, resolvedPlayerPos.y);
+        }
+        else
+        {
+            glm::vec2 currentPosAfterCollisionLogic = m_pTransform->GetPosition();
+            const float fallbackGroundY = 676.0f;
+            if (currentPosAfterCollisionLogic.y >= fallbackGroundY)
+            {
+                currentPosAfterCollisionLogic.y = fallbackGroundY;
+                m_VerticalVelocity = 0.0f;
+                m_IsOnGround = true;
+                m_pTransform->SetPosition(currentPosAfterCollisionLogic.x, currentPosAfterCollisionLogic.y);
+                if (m_pPlayerCollider) m_pPlayerCollider->SetPosition(currentPosAfterCollisionLogic.x, currentPosAfterCollisionLogic.y);
+            }
+        }
     }
 
-    void PlayerCharacterComponent::Render() const
-    {
-        // Empty
-    }
+    void PlayerCharacterComponent::Render() const {}
 
     void PlayerCharacterComponent::Move(float x, float /*y*/)
     {
-        std::cout << "[PCC::Move] Called with x: " << x << ". Prev m_Direction.x: " << m_Direction.x;
         m_Direction.x += x;
         m_Direction.x = std::clamp(m_Direction.x, -1.0f, 1.0f);
-        std::cout << " -> New m_Direction.x: " << m_Direction.x << std::endl;
     }
 
     void PlayerCharacterComponent::StopMove(float x, float /*y*/)
     {
-        std::cout << "[PCC::StopMove] Called with x: " << x << ". Prev m_Direction.x: " << m_Direction.x;
         m_Direction.x -= x;
         m_Direction.x = std::clamp(m_Direction.x, -1.0f, 1.0f);
-        std::cout << " -> New m_Direction.x: " << m_Direction.x << std::endl;
     }
 
     void PlayerCharacterComponent::Jump()
     {
-        std::cout << "[PCC::Jump] Called. m_IsOnGround (at call time): " << (m_IsOnGround ? "true" : "false")
-            << ", Current VVel: " << m_VerticalVelocity << std::endl;
-        if (m_IsOnGround) // Check m_IsOnGround status *after* HandleCollisions in the previous frame's Update
+        if (m_IsOnGround)
         {
             m_VerticalVelocity = -m_JumpStrength;
-            m_IsOnGround = false; // Will be set to false again at start of next Update anyway, but good for clarity here
-            if (m_pSoundService)
-            {
-                // Example: m_pSoundService->Play("JumpSoundID", 0.5f); 
-            }
-            std::cout << "  [PCC::Jump] JUMP ACTION! New VVel: " << m_VerticalVelocity
-                << ", m_IsOnGround set to false." << std::endl;
-        }
-        else
-        {
-            std::cout << "  [PCC::Jump] Jump failed: Player not on ground." << std::endl;
+            m_IsOnGround = false;
+            if (m_pSoundService) { /* m_pSoundService->Play("JumpSoundID", 0.5f); */ }
         }
     }
 
     void PlayerCharacterComponent::DoDamage(int amount)
     {
-        std::cout << "[PCC::DoDamage] Called with amount: " << amount << std::endl;
+        if (!GetOwner()) return;
         auto healthComponent = GetOwner()->GetComponent<HealthComponent>();
         if (healthComponent)
         {
             healthComponent->TakeDamage(amount);
-            if (m_pSoundService)
-            {
-                m_pSoundService->LoadSound("Sound/KillEnemy.wav");
-                m_pSoundService->OutputSound("Sound/KillEnemy.wav", 64);
-            }
+            if (m_pSoundService) { /* m_pSoundService->Play("PlayerDamageSoundID", 0.5f); */ }
         }
     }
 
     void PlayerCharacterComponent::AddScore(int points)
     {
-        std::cout << "[PCC::AddScore] Called with points: " << points << std::endl;
+        if (!GetOwner()) return;
         auto scoreComponent = GetOwner()->GetComponent<ScoreComponent>();
         if (scoreComponent)
         {
             scoreComponent->AddScore(points);
-            if (m_pSoundService)
-            {
-                m_pSoundService->LoadSound("Sound/GetFruit.wav");
-                m_pSoundService->OutputSound("Sound/GetFruit.wav", 64);
-            }
+            if (m_pSoundService) { /* m_pSoundService->Play("CollectPointSoundID", 0.5f); */ }
         }
     }
 
@@ -291,25 +258,18 @@ namespace dae
     {
         if (!m_pStateMachine)
         {
-            static bool ensureSmFirstCall = true;
-            if (ensureSmFirstCall) std::cout << "[PCC::EnsureStateMachine] Attempting to get StateMachineComponent." << std::endl;
-
-            auto sm = GetOwner()->GetComponent<StateMachineComponent>();
-            if (sm)
+            if (GetOwner())
             {
-                if (ensureSmFirstCall) std::cout << "  [PCC::EnsureStateMachine] StateMachineComponent found." << std::endl;
-                m_pStateMachine = sm.get();
-                if (m_pStateMachine && !m_pStateMachine->GetCurrentState() && m_IsOnGround)
+                auto sm = GetOwner()->GetComponent<StateMachineComponent>();
+                if (sm)
                 {
-                    if (ensureSmFirstCall) std::cout << "  [PCC::EnsureStateMachine] Initializing state to PlayerIdleState (Grounded)." << std::endl;
-                    m_pStateMachine->ChangeState(std::make_unique<PlayerIdleState>());
+                    m_pStateMachine = sm.get();
+                    if (m_pStateMachine && !m_pStateMachine->GetCurrentState() && m_IsOnGround)
+                    {
+                        m_pStateMachine->ChangeState(std::make_unique<PlayerIdleState>());
+                    }
                 }
             }
-            else
-            {
-                if (ensureSmFirstCall) std::cerr << "  [PCC::EnsureStateMachine] StateMachineComponent NOT found." << std::endl;
-            }
-            ensureSmFirstCall = false;
         }
     }
 

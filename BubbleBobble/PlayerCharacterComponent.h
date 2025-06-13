@@ -1,68 +1,66 @@
-// PlayerCharacterComponent.h
 #pragma once
-
-#include <memory>
-#include <glm.hpp>
-
 #include "BaseComponent.h"
+#include "vec2.hpp"
+#include <memory>
 
-#include "SoundService.h"
-#include "StateMachineComponent.h" // Add this include
+#include "InputManager.h" 
+#include "Controller.h"   
 
-class Event;  // Forward declaration of Event
-class Observer;  // Forward declaration of Observer
+// Forward declarations
+namespace dae
+{
+    class GameObject;
+    class TransformComponent;
+    class BoxCollisionComponent;
+    class StateMachineComponent;
+    class Scene;
+}
+
+class ISoundService;
 
 namespace dae
 {
-	class BoxCollisionComponent;
-	class GameObject;
-    class TransformComponent;
-    class InputManager;
-
-    class PlayerCharacterComponent final : public BaseComponent
+    class PlayerCharacterComponent : public BaseComponent
     {
     public:
         PlayerCharacterComponent(GameObject* owner, float speed);
-        ~PlayerCharacterComponent() = default;
+        ~PlayerCharacterComponent() override = default;
 
-    	void Update(float deltaTime) override;
-        void HandleCollisions(float);
+        PlayerCharacterComponent(const PlayerCharacterComponent& other) = delete;
+        PlayerCharacterComponent(PlayerCharacterComponent&& other) noexcept = delete;
+        PlayerCharacterComponent& operator=(const PlayerCharacterComponent& other) = delete;
+        PlayerCharacterComponent& operator=(PlayerCharacterComponent&& other) noexcept = delete;
+
+        void Update(float deltaTime) override;
         void Render() const override;
 
-        void Move(float x, float y); // Method to be called by MoveCommand
-        void StopMove(float x, float y);
+        void SetCurrentScene(Scene* scene);
 
+        void Move(float x, float y = 0.0f);
+        void StopMove(float x, float y = 0.0f);
         void Jump();
-
-        //void UpdateDirection();
-
-        // New method for binding inputs
-        void BindInputs(bool isKeyboard, int controllerIdx = 0);
-
-        // New method for doing damage
         void DoDamage(int amount);
         void AddScore(int points);
 
-    private:
+        void BindInputs(bool isKeyboard, int playerNumberForInput);
+
+        bool IsOnGround() const { return m_IsOnGround; }
+
+    protected:
+        void HandleCollisions(float deltaTime);
+        void EnsureStateMachine();
+
         float m_Speed;
-        glm::vec2 m_Direction{ 0.0f, 0.0f };
+        glm::vec2 m_Direction;
+        float m_VerticalVelocity;
+        bool m_IsOnGround;
+        float m_JumpStrength;
+        float m_Gravity;
 
-        float m_VerticalVelocity{ 0.0f };
-        bool m_IsOnGround{}; // Set to true when the player is on the ground
-        const float m_JumpStrength{ 550.0f }; // Adjust as needed
-        const float m_Gravity{ 991.0f };      // Adjust as needed
-        BoxCollisionComponent* m_pPlayerCollider = nullptr;
-
-        TransformComponent* m_pTransform{ nullptr };
-
-        std::shared_ptr<ISoundService> m_pSoundService;
-
-        dae::StateMachineComponent* m_pStateMachine{ nullptr }; // Add state machine pointer
-
-        void EnsureStateMachine(); // Helper to cache state machine
-
+        TransformComponent* m_pTransform;
+        BoxCollisionComponent* m_pPlayerCollider;
+        StateMachineComponent* m_pStateMachine;
+        ISoundService* m_pSoundService; // Using global ISoundService*
+        Scene* m_pCurrentScene;
     };
-
-
 }
-

@@ -19,7 +19,7 @@
 #include "ScoreDisplay.h"
 #include "ResourceManager.h"
 #include "BoxCollisionComponent.h"
-
+#include "PlayerCommands.h"
 
 LevelParser::LevelParser()
     : m_currentPlayerNumber(1)

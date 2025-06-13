@@ -28,9 +28,11 @@ namespace dae
         std::shared_ptr<GameObject> FindObjectByName(const std::string& name) const;
         const std::string& GetName() const { return m_name; }
 
+        const std::vector<std::shared_ptr<GameObject>>& GetAllGameObjects() const { return m_objects; }
+
     private:
         std::string m_name;
-        std::vector<std::shared_ptr<GameObject>> m_objects;
+        std::vector<std::shared_ptr<GameObject>> m_objects{};
         static unsigned int m_idCounter;
     };
 }
