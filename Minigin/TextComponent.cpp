@@ -8,6 +8,16 @@ namespace dae
     TextComponent::TextComponent(GameObject* owner, const std::string& text, std::shared_ptr<Font> font)
         : BaseComponent(owner), m_text(text), m_font(std::move(font)), m_needsUpdate(true)
     {
+        // Calculate initial size using SDL_ttf
+        int w = 0, h = 0;
+        if (m_font && TTF_SizeText(m_font->GetFont(), m_text.c_str(), &w, &h) == 0)
+        {
+            m_size = { static_cast<float>(w), static_cast<float>(h) };
+        }
+        else
+        {
+            m_size = { 0.0f, 0.0f };
+        }
     }
 
     void TextComponent::Update(float deltaTime)

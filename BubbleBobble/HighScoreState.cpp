@@ -28,10 +28,14 @@ const std::string HighScoreState::HIGHSCORE_FILE = "Data/HighScores.txt";
 
 void HighScoreState::Enter(Game* game)
 {
-    std::cout << "[\\033[33mDebug\\033[0m] Entering High Score State\\n";
     EnsureHighScoreFileExists();
+
+    std::cout << "[\\033[33mDebug\\033[0m] Entering High Score State\\n";
+    BaseGameplayState::Enter(game);
+
     dae::InputManager::GetInstance().ClearAllBindings();
     std::cout << "[\\033[33mDebug\\033[0m] Cleared all previous input bindings\\n";
+
     auto& scene = dae::SceneManager::GetInstance().CreateScene("HighScore");
 
     try
@@ -163,16 +167,19 @@ void HighScoreState::SaveHighScore(const std::string& name, int score)
 
 void HighScoreState::Load(dae::Scene& scene)
 {
+    // Center X for all text
+    float centerX = BaseGameplayState::SCREEN_WIDTH / 2.0f;
+
+    // Title
     auto title = std::make_shared<dae::GameObject>();
-    auto font = dae::ResourceManager::GetInstance().LoadFont("Fonts/Lingua.otf", 36); // Corrected
-    title->AddComponent<dae::TextComponent>("HIGH SCORES", font);
-    //transformComponent = title->AddComponent<dae::TransformComponent>();
-    title->GetTransform()->SetPosition(400.0f, 100.0f);
+    auto font = dae::ResourceManager::GetInstance().LoadFont("Fonts/Pixel_NES.otf", 36);
+    title->AddComponent<dae::TextComponent>("HIGH SCORE TABLE", font);
+    title->GetTransform()->SetPosition(centerX - title->GetComponent<dae::TextComponent>()->GetSize().x / 2, 100.0f);
     title->AddComponent<dae::RenderComponent>();
     scene.Add(title);
 
     auto scores = LoadHighScores();
-    auto smallFont = dae::ResourceManager::GetInstance().LoadFont("Fonts/Pixel_NES.otf", 24); // Corrected
+    auto smallFont = dae::ResourceManager::GetInstance().LoadFont("Fonts/Pixel_NES.otf", 24);
 
     for (size_t i = 0; i < scores.size(); ++i)
     {
@@ -180,16 +187,15 @@ void HighScoreState::Load(dae::Scene& scene)
         scoreText << (i + 1) << ". " << scores[i].name << " - " << scores[i].score;
         auto scoreObj = std::make_shared<dae::GameObject>();
         scoreObj->AddComponent<dae::TextComponent>(scoreText.str(), smallFont);
-        //transformComponent = scoreObj->AddComponent<dae::TransformComponent>();
-        scoreObj->GetTransform()->SetPosition(400.0f, 180.0f + static_cast<float>(i) * 40.0f);
+        // Center each score line
+        scoreObj->GetTransform()->SetPosition(centerX - 150.0f, 180.0f + static_cast<float>(i) * 40.0f); // Adjust -150 for visual centering
         scoreObj->AddComponent<dae::RenderComponent>();
         scene.Add(scoreObj);
     }
 
     auto instructions = std::make_shared<dae::GameObject>();
     instructions->AddComponent<dae::TextComponent>("Press ESC to return to main menu", smallFont);
-    //transformComponent = instructions->AddComponent<dae::TransformComponent>();
-	instructions->GetTransform()->SetPosition(350.0f, 450.0f);
+    instructions->GetTransform()->SetPosition(centerX - 250.0f, 450.0f); // Adjust -250 for visual centering
     instructions->AddComponent<dae::RenderComponent>();
     scene.Add(instructions);
 }

@@ -7,7 +7,7 @@
 struct HighScoreEntry
 {
     std::string name;
-    int score;
+    int score{};
 };
 
 class HighScoreState final : public BaseGameplayState

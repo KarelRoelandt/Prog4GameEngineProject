@@ -22,6 +22,8 @@ StartMenuState::StartMenuState()
 void StartMenuState::Enter(Game* game)
 {
     std::cout << "[\033[33mDebug\033[0m] Entering Start Menu State\n";
+    BaseGameplayState::Enter(game);
+
     dae::InputManager::GetInstance().ClearAllBindings();
     std::cout << "[\033[33mDebug\033[0m] Cleared all previous input bindings\n";
 
