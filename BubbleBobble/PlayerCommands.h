@@ -18,7 +18,7 @@ namespace dae
         }
         void Execute() override
         {
-            std::cout << "MoveCommand executed\n";
+            //std::cout << "MoveCommand executed\n";
             if (m_pPlayer)
                 m_pPlayer->Move(m_DirectionX, m_DirectionY);
         }
