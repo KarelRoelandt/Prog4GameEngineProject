@@ -57,55 +57,24 @@ void SinglePlayerState::SetupPlayers(dae::Scene& scene)
 {
     std::cout << "[SinglePlayerState::SetupPlayers] Initializing level for scene: " << scene.GetName() << "\n";
 
-    // 1. Load UI Font and create instruction text
-    auto font = dae::ResourceManager::GetInstance().LoadFont("Fonts/Pixel_NES.otf", 16);
-    if (!font)
-    {
-        std::cerr << "[SinglePlayerState::SetupPlayers] CRITICAL ERROR: Failed to load font 'Fonts/Pixel_NES.otf'." << "\n";
-    }
-    else
-    {
-        auto textPlayer1 = std::make_shared<dae::GameObject>();
-        textPlayer1->SetName("InstructionsP1_SP_State"); // Unique name
-        textPlayer1->AddComponent<dae::TextComponent>("Use WASD to move Bub, C to attack.", font);
+    auto font = dae::ResourceManager::GetInstance().LoadFont("Fonts/Pixel_NES.otf", 24);
+    
+    auto textPlayer1 = std::make_shared<dae::GameObject>();
+    textPlayer1->AddComponent<dae::TextComponent>("Use WASD to move Bub, C to attack.", font);
+    textPlayer1->GetTransform()->SetPosition(10.f, 60.f); // Example position
+	textPlayer1->AddComponent<dae::RenderComponent>();
+    scene.Add(textPlayer1);
 
-        // Ensure TransformComponent is added (or retrieved if already exists)
-        auto transformComp = textPlayer1->GetComponent<dae::TransformComponent>();
-        if (!transformComp)
-        {
-            transformComp = textPlayer1->AddComponent<dae::TransformComponent>();
-        }
-        transformComp->SetPosition(10.f, 60.f); // Example position
-
-        // Ensure RenderComponent is added
-        if (!textPlayer1->GetComponent<dae::RenderComponent>())
-        {
-            textPlayer1->AddComponent<dae::RenderComponent>();
-        }
-
-        scene.Add(textPlayer1);
-        std::cout << "[SinglePlayerState::SetupPlayers] Added instruction text." << "\n";
-    }
-
-    // 2. Construct the level file path using ResourceManager's data path
     std::string baseDataPath = dae::ResourceManager::GetInstance().GetDataPath().string();
     std::cout << "[SinglePlayerState::SetupPlayers] ResourceManager::GetDataPath() returned: '" << baseDataPath << "'" << "\n";
 
-    // Ensure baseDataPath ends with a slash if it doesn't already.
-    // This is important for correct path joining.
-    if (!baseDataPath.empty() && baseDataPath.back() != '/' && baseDataPath.back() != '\\')
-    {
-        baseDataPath += '/';
-        std::cout << "[SinglePlayerState::SetupPlayers] Added trailing slash to baseDataPath. Now: '" << baseDataPath << "'" << "\n";
-    }
-
-    std::string relativeLevelPath = "Levels/1/Data.txt"; // Path relative to the data root
+    std::string relativeLevelPath = "Levels/1/Data.txt";
     std::string levelFilePath = baseDataPath + relativeLevelPath;
 
     std::cout << "[SinglePlayerState::SetupPlayers] Attempting to load level using LevelParser with dynamic path: '" << levelFilePath << "'" << "\n";
 
-    // 3. Load the level using LevelParser
-    bool loadResult = m_LevelParser.LoadLevel(scene, levelFilePath, true); // true for single-player
+    // Load the level using LevelParser
+    bool loadResult = m_LevelParser.LoadLevel(scene, levelFilePath, true);
     if (!loadResult)
     {
         std::cerr << "[SinglePlayerState::SetupPlayers] CRITICAL ERROR: LevelParser::LoadLevel failed for file: '" << levelFilePath << "'" << "\n";

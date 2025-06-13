@@ -1,7 +1,9 @@
 #pragma once
+
 #include <string>
 #include <vector>
 #include <limits> // Required for std::numeric_limits
+#include "BaseGameplayState.h"
 
 // Forward declaration for dae::Scene
 namespace dae
@@ -33,10 +35,6 @@ public:
 
 
 private:
-    // Pre-scans the level file to calculate the overall bounds of level elements
-    // and determines the offset needed to center them within the defined game grid.
-    void CalculateLevelOffsetAndBounds(const std::string& filePath);
-
     // Parsing methods for different elements
     void ParseBigTile(dae::Scene& scene, const std::string& lineData, bool isInvisible);
     void ParseSmallTile(dae::Scene& scene, const std::string& lineData, bool isFake);
@@ -62,10 +60,10 @@ private:
     const float m_smallTileWidth{ 24.0f };
     const float m_smallTileHeight{ 24.0f };
     // Player and ZenChan dimensions - can be updated by SetDynamicElementDimensions
-    float m_playerWidth;
-    float m_playerHeight;
-    float m_zenChanWidth;
-    float m_zenChanHeight;
+    float m_playerWidth{ 48.0f };
+	float m_playerHeight{ 48.0f };
+    float m_zenChanWidth{ 48.0f };
+    float m_zenChanHeight{ 48.0f };
     // --- End of Dimensions ---
 
     // Offset values to center the level
@@ -74,7 +72,10 @@ private:
 
     // Game Area definitions based on your plan
     const float m_gameAreaWidth{ 960.0f };      // The width for game content centering
-    const float m_gameAreaBaseHeight{ 840.0f }; // Total height of the game area including HUD
+    const float m_gameAreaHeight{ 840.0f }; // Total height of the game area including HUD
     const float m_hudHeight{ 48.0f };           // Height of the top HUD area
-    const float m_gameGridHeight;             // Calculated: m_gameAreaBaseHeight - m_hudHeight
+    const float m_gameGridHeight{ m_gameAreaHeight - m_hudHeight };             // Calculated: m_gameAreaBaseHeight - m_hudHeight
+
+    const float m_windowWidth{BaseGameplayState::SCREEN_WIDTH};
+    const float m_windowHeight{BaseGameplayState::SCREEN_HEIGHT};
 };

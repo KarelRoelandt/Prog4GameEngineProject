@@ -111,7 +111,7 @@ void dae::Minigin::Initialize(int width, int height, const std::string& dataPath
     }
 
     g_window = SDL_CreateWindow(
-        "Programming 4 assignment - 2DAE19 Karel Roelandt",
+        "Programming 4 assignment - Minigin - 2DAE19 Karel Roelandt",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
         width,

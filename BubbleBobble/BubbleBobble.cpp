@@ -13,6 +13,8 @@
 #include "ServiceLocator.h"
 #include "ISoundService.h"
 
+#include "BaseGameplayState.h"
+
 
 // Global pointer to the engine instance
 dae::Minigin* g_Engine = nullptr;
@@ -20,7 +22,7 @@ dae::Minigin* g_Engine = nullptr;
 int main(int, char* [])
 {
     // Initialize engine once at the application level
-    dae::Minigin engine(1600, 900, "../BubbleBobble/Data/");
+    dae::Minigin engine(static_cast<int>(BaseGameplayState::SCREEN_WIDTH), static_cast<int>(BaseGameplayState::SCREEN_HEIGHT), "../BubbleBobble/Data/");
     //engine.Initialize("");
 
     // Store engine reference in a globally accessible way
