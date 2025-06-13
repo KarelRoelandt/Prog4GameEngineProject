@@ -40,6 +40,11 @@ namespace dae
                 m_CurrentState->Enter(GetOwner());
         }
 
+        IState* GetCurrentState() const
+        {
+            return m_CurrentState.get();
+        }
+
     private:
         std::unique_ptr<IState> m_CurrentState;
     };

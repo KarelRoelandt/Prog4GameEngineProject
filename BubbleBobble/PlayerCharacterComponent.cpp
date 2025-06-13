@@ -6,6 +6,8 @@
 #include "Controller.h" // Include Controller.h to get access to the GamepadButton enum
 #include "HealthComponent.h"
 #include "ScoreComponent.h"
+#include "StateMachineComponent.h"
+#include "PlayerRunState.h"
 
 #include "ServiceLocator.h"
 
@@ -19,6 +21,7 @@ namespace dae
         , m_MovingUp(false)
         , m_MovingDown(false)
         , m_pSoundService(ServiceLocator::GetSoundService())
+        , m_pStateMachine(nullptr)
     {
         // Get the transform component as a raw pointer
         auto transformPtr = GetOwner()->GetComponent<TransformComponent>();
@@ -74,24 +77,32 @@ namespace dae
         // Empty implementation or debug rendering if needed
     }
 
-    void PlayerCharacterComponent::Move(float x, float y)
+    void PlayerCharacterComponent::Move(float x, float /*y*/)
     {
         if (x < 0) m_MovingLeft = true;
         else if (x > 0) m_MovingRight = true;
 
-        if (y < 0) m_MovingUp = true;
-        else if (y > 0) m_MovingDown = true;
+        //if (y < 0) m_MovingUp = true;
+        //else if (y > 0) m_MovingDown = true;
 
         UpdateDirection();
+
+        // Only set state to PlayerRunState if not already in it
+        if (x != 0.0f) {
+            EnsureStateMachine();
+            if (m_pStateMachine && !IsInRunState()) {
+                m_pStateMachine->ChangeState(std::make_unique<PlayerRunState>());
+            }
+        }
     }
 
-    void PlayerCharacterComponent::StopMove(float x, float y)
+    void PlayerCharacterComponent::StopMove(float x, float /*y*/)
     {
         if (x < 0) m_MovingLeft = false;
         else if (x > 0) m_MovingRight = false;
 
-        if (y < 0) m_MovingUp = false;
-        else if (y > 0) m_MovingDown = false;
+        //if (y < 0) m_MovingUp = false;
+        //else if (y > 0) m_MovingDown = false;
 
         UpdateDirection();
     }
@@ -104,6 +115,23 @@ namespace dae
         if (m_MovingRight) m_Direction.x += 1.0f;
         if (m_MovingUp) m_Direction.y -= 1.0f;
         if (m_MovingDown) m_Direction.y += 1.0f;
+    }
+
+    void PlayerCharacterComponent::EnsureStateMachine()
+    {
+        if (!m_pStateMachine) {
+            auto sm = GetOwner()->GetComponent<dae::StateMachineComponent>();
+            m_pStateMachine = sm ? sm.get() : nullptr;
+        }
+    }
+
+    // Helper to check if the current state is PlayerRunState
+    bool PlayerCharacterComponent::IsInRunState() const
+    {
+        if (!m_pStateMachine) return false;
+        auto* state = m_pStateMachine->GetCurrentState();
+        // Compare type using RTTI
+        return dynamic_cast<PlayerRunState*>(state) != nullptr;
     }
 
     void PlayerCharacterComponent::BindInputs(bool isKeyboard, int /*controllerIdx*/)
@@ -150,8 +178,10 @@ namespace dae
 
             // Add controller button binding for damage and score
             inputManager.BindControllerCommand(GamepadButton::ButtonX, InputState::Pressed, std::make_shared<DamageCommand>(sharedThis, 1));
-            inputManager.BindControllerCommand(GamepadButton::ButtonA, InputState::Pressed, std::make_shared<ScoreCommand>(sharedThis, 10));
-            inputManager.BindControllerCommand(GamepadButton::ButtonB, InputState::Pressed, std::make_shared<ScoreCommand>(sharedThis, 100));
+            inputManager.BindControllerCommand(GamepadButton::ButtonY, InputState::Pressed, std::make_shared<ScoreCommand>(sharedThis, 10));
+            //inputManager.BindControllerCommand(GamepadButton::ButtonB, InputState::Pressed, std::make_shared<ScoreCommand>(sharedThis, 100));
+
+
         }
     }
 }

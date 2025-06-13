@@ -159,7 +159,7 @@ void LevelParser::ParsePlayer(dae::Scene& scene, const std::string& lineData, bo
     auto scoreComponent = player->AddComponent<dae::ScoreComponent>(player.get(), 0);
 
     auto stateMachine = player->AddComponent<dae::StateMachineComponent>();
-    stateMachine->ChangeState(std::make_unique<PlayerRunState>());
+    //stateMachine->ChangeState(std::make_unique<PlayerRunState>());
 
     scene.Add(player);
 

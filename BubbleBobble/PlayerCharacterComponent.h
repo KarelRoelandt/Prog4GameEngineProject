@@ -7,6 +7,8 @@
 #include "Command.h"
 
 #include "SoundService.h"
+#include "StateMachineComponent.h" // Add this include
+#include "PlayerRunState.h"        // Add this include
 
 class Event;  // Forward declaration of Event
 class Observer;  // Forward declaration of Observer
@@ -43,7 +45,14 @@ namespace dae
         glm::vec2 m_Direction{ 0.0f, 0.0f };
         TransformComponent* m_pTransform{ nullptr };
 
-       std::shared_ptr<ISoundService> m_pSoundService;
+        std::shared_ptr<ISoundService> m_pSoundService;
+
+        dae::StateMachineComponent* m_pStateMachine{ nullptr }; // Add state machine pointer
+
+        void EnsureStateMachine(); // Helper to cache state machine
+
+        // Add this helper to check if currently in PlayerRunState
+        bool IsInRunState() const;
     };
 
 
