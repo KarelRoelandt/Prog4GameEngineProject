@@ -15,7 +15,10 @@ void PlayerRunState::Enter(dae::GameObject* owner)
     auto animator = owner->GetComponent<dae::AnimatorComponent>();
     if (animator)
     {
-        animator->Play("Run");
+        if (!(animator->GetCurrentAnimation() == "Shoot" && animator->IsPlaying()))
+        {
+            animator->Play("Run");
+        }
     }
 }
 

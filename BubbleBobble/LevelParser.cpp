@@ -5,6 +5,7 @@
 #include <iostream>    // For debug output
 #include <algorithm>   // For std::min/max
 #include <limits>      // For std::numeric_limits
+#include <SDL_mixer.h>
 
 #include "AnimatorComponent.h"
 #include "Scene.h"
@@ -23,6 +24,10 @@
 #include "PlayerCommands.h"
 #include "PlayerIdleState.h"
 #include "StateMachineComponent.h"
+#include <ServiceLocator.h>
+
+#include "ISoundService.h"
+#include "ZenChanMovementComponent.h"
 
 LevelParser::LevelParser()
     : m_currentPlayerNumber(1)
@@ -199,9 +204,8 @@ void LevelParser::ParsePlayer(dae::Scene& scene, const std::string& lineData, bo
     animator->AddAnimationFromGrid("Shoot", shootTexture, 48, 48, 4, 0.08f, false);
 
     player->AddComponent<dae::StateMachineComponent>()->ChangeState(std::make_unique<PlayerIdleState>());
-    
 
-    scene.Add(player);
+	scene.Add(player);
 
     auto font = dae::ResourceManager::GetInstance().LoadFont("Fonts/Lingua.otf", 16);
     if (!font) { std::cerr << "[LevelParser] Error: Could not load font for player UI." << "\n"; }
@@ -230,6 +234,7 @@ void LevelParser::ParsePlayer(dae::Scene& scene, const std::string& lineData, bo
     m_currentPlayerNumber++;
 }
 
+
 void LevelParser::ParseZenChan(dae::Scene& scene, const std::string& lineData)
 {
     auto parts = SplitString(lineData, ',');
@@ -248,13 +253,49 @@ void LevelParser::ParseZenChan(dae::Scene& scene, const std::string& lineData)
     textureComp->SetRenderSize(m_zenChanWidth, m_zenChanHeight);
     enemy->AddComponent<dae::RenderComponent>();
 
-    enemy->AddComponent<dae::BoxCollisionComponent>(worldX, worldY, m_zenChanWidth, m_zenChanHeight, dae::ColliderTag::ENEMY); // Assuming you add ENEMY to ColliderTag
-    // std::cout << "[LevelParser] Added ENEMY BoxCollisionComponent to " << enemy->GetName() << " at (" << worldX << "," << worldY << ")" << "\n";
+    // Create BoxCollisionComponent - matching the pattern in ParsePlayer
+    enemy->AddComponent<dae::BoxCollisionComponent>(worldX, worldY, m_zenChanWidth, m_zenChanHeight, dae::ColliderTag::ENEMY);
 
     auto animator = enemy->AddComponent<dae::AnimatorComponent>();
     auto runTexture = dae::ResourceManager::GetInstance().LoadTexture(m_ZenChanTexturePath + "Run_Anim.png");
     animator->AddAnimationFromGrid("Run", runTexture, 48, 48, 4, 0.08f, true);
-	animator->Play("Run");
+    animator->Play("Run");
+
+    // Add the movement component - matching the pattern in ParsePlayer
+    auto movementComp = enemy->AddComponent<dae::ZenChanMovementComponent>(50.0f, 200.0f);
+    movementComp->SetPatrolRange(100.0f);
+    movementComp->SetMaxFallSpeed(300.0f);
+
+    std::cout << "[LevelParser] Added ZenChanMovementComponent with gravity to " << enemy->GetName() << " at (" << worldX << "," << worldY << ")" << "\n";
 
     scene.Add(enemy);
 }
+
+//void LevelParser::ParseZenChan(dae::Scene& scene, const std::string& lineData)
+//{
+//    auto parts = SplitString(lineData, ',');
+//    if (parts.size() != 2) { std::cerr << "[LevelParser] Error: Malformed ZenChan data: " << lineData << "\n"; return; }
+//    float x_file = std::stof(parts[0]);
+//    float y_file = std::stof(parts[1]);
+//    auto enemy = std::make_shared<dae::GameObject>();
+//    enemy->SetName("ZenChan");
+//
+//    float worldX = x_file + m_offsetX;
+//    float worldY = y_file + m_offsetY;
+//    enemy->GetTransform()->SetPosition(worldX, worldY);
+//
+//    auto textureComp = enemy->AddComponent<dae::TextureComponent>();
+//    textureComp->SetTexture(m_ZenChanTexturePath + "Run_Anim.png");
+//    textureComp->SetRenderSize(m_zenChanWidth, m_zenChanHeight);
+//    enemy->AddComponent<dae::RenderComponent>();
+//
+//    enemy->AddComponent<dae::BoxCollisionComponent>(worldX, worldY, m_zenChanWidth, m_zenChanHeight, dae::ColliderTag::ENEMY); // Assuming you add ENEMY to ColliderTag
+//    // std::cout << "[LevelParser] Added ENEMY BoxCollisionComponent to " << enemy->GetName() << " at (" << worldX << "," << worldY << ")" << "\n";
+//
+//    auto animator = enemy->AddComponent<dae::AnimatorComponent>();
+//    auto runTexture = dae::ResourceManager::GetInstance().LoadTexture(m_ZenChanTexturePath + "Run_Anim.png");
+//    animator->AddAnimationFromGrid("Run", runTexture, 48, 48, 4, 0.08f, true);
+//	animator->Play("Run");
+//
+//    scene.Add(enemy);
+//}

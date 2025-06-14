@@ -165,6 +165,7 @@
   <ItemGroup>
     <ClCompile Include="BaseGameplayState.cpp" />
     <ClCompile Include="BubbleBobble.cpp" />
+    <ClCompile Include="BubbleComponent.cpp" />
     <ClCompile Include="FPSComponent.cpp" />
     <ClCompile Include="HealthComponent.cpp" />
     <ClCompile Include="HealthDisplay.cpp" />
@@ -172,6 +173,7 @@
     <ClCompile Include="LevelParser.cpp" />
     <ClCompile Include="PlayerCharacterComponent.cpp" />
     <ClCompile Include="PlayerIdleState.cpp" />
+    <ClCompile Include="PlayerJumpState.cpp" />
     <ClCompile Include="PlayerRunState.cpp" />
     <ClCompile Include="PlayerShootState.cpp" />
     <ClCompile Include="RotationComponent.cpp" />
@@ -181,9 +183,11 @@
     <ClCompile Include="StartMenuState.cpp" />
     <ClCompile Include="TwoPlayerCoopState.cpp" />
     <ClCompile Include="VersusState.cpp" />
+    <ClCompile Include="ZenChanMovementComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BaseGameplayState.h" />
+    <ClInclude Include="BubbleComponent.h" />
     <ClInclude Include="CharacterState.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="ExampleComponent.h" />
@@ -198,6 +202,7 @@
     <ClInclude Include="PlayerCharacterComponent.h" />
     <ClInclude Include="PlayerCommands.h" />
     <ClInclude Include="PlayerIdleState.h" />
+    <ClInclude Include="PlayerJumpState.h" />
     <ClInclude Include="PlayerRunState.h" />
     <ClInclude Include="PlayerShootState.h" />
     <ClInclude Include="RotationComponent.h" />
@@ -207,6 +212,7 @@
     <ClInclude Include="StartGameCommand.h" />
     <ClInclude Include="StartMenuState.h" />
     <ClInclude Include="Subject.h" />
+    <ClInclude Include="ZenChanMovementComponent.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -13,6 +13,7 @@
 #include "Scene.h"
 #include <SDL.h>
 #include <iostream>
+#include <SDL_mixer.h>
 
 StartMenuState::StartMenuState()
 {
@@ -29,6 +30,10 @@ void StartMenuState::Enter(Game* game)
 
     auto& scene = dae::SceneManager::GetInstance().CreateScene("StartMenu");
     std::cout << "[\033[33mDebug\033[0m] Created StartMenu scene\n";
+
+    ServiceLocator::GetSoundService()->LoadSound("Player/Jump.wav");
+    ServiceLocator::GetSoundService()->LoadSound("Player/Shoot.wav");
+    ServiceLocator::GetSoundService()->LoadSound("Enemies/Death.wav");
 
     Load(scene);
 

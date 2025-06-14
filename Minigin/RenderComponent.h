@@ -1,18 +1,19 @@
 #pragma once
-#include "BaseComponent.h"
-#include "TextureComponent.h"   // Needs the updated TextureComponent definition
-#include "TransformComponent.h"
-#include "Renderer.h"           // For dae::Renderer
-#include "TextComponent.h"      // If you have a TextComponent that RenderComponent might render
-#include "GameObject.h"
-#include <iostream>             // For std::cout logging (optional)
 
-// Ensure your Vector2 header is included (defined in CustomDefs.h for your project)
-#include "CustomDefs.h" 
-
-// GLM includes (used for objectPosition, and potentially by TransformComponent)
 #include <glm.hpp>
-#include <vec2.hpp> // For glm::vec2
+#include <vec2.hpp>
+#include <iostream>
+
+#include "GameObject.h"
+
+#include "BaseComponent.h"
+#include "TextureComponent.h"
+#include "TransformComponent.h"
+#include "TextComponent.h"
+
+#include "Renderer.h"
+
+#include "CustomDefs.h" 
 
 namespace dae
 {

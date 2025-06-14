@@ -35,6 +35,7 @@ namespace dae
         void Render() const override;
 
         void SetCurrentScene(Scene* scene);
+        Scene* GetCurrentScene() const { return m_pCurrentScene; }
 
         void Move(float x, float y = 0.0f);
         void StopMove(float x, float y = 0.0f);
@@ -42,6 +43,9 @@ namespace dae
         void ShootBubble();
         void DoDamage(int amount);
         void AddScore(int points);
+
+        glm::vec2 GetDirection() const { return m_Direction; }
+        glm::vec2 GetFacingDirection() const { return m_FacingDirection; }
 
         void BindInputs(bool isKeyboard, int playerNumberForInput);
 
@@ -57,6 +61,8 @@ namespace dae
         bool m_IsOnGround;
         float m_JumpStrength;
         float m_Gravity;
+
+        glm::vec2 m_FacingDirection{ 1.0f, 0.0f }; // Default facing right
 
         TransformComponent* m_pTransform;
         BoxCollisionComponent* m_pPlayerCollider;

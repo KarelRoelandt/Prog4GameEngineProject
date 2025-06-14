@@ -12,7 +12,8 @@
 
 namespace dae
 {
-    // ANSI escape codes for coloring output (consider moving to a common utility header)
+	class Scene;
+	// ANSI escape codes for coloring output (consider moving to a common utility header)
     const std::string ANSI_COLOR_RESET_GAMEOBJECT_H = "\033[0m";
     const std::string ANSI_COLOR_YELLOW_ORANGE_GAMEOBJECT_H = "\033[33m";
     const std::string WARNING_PREFIX_GAMEOBJECT_H = ANSI_COLOR_RESET_GAMEOBJECT_H + "[" + ANSI_COLOR_YELLOW_ORANGE_GAMEOBJECT_H + "WARNING" + ANSI_COLOR_RESET_GAMEOBJECT_H + "] ";
@@ -31,6 +32,9 @@ namespace dae
 
         void Update(float deltaTime);
         void Render() const;
+
+        void SetScene(Scene* scene) { m_pScene = scene; }
+        Scene* GetScene() const { return m_pScene; }
 
         template <typename T, typename... Args>
         std::shared_ptr<T> AddComponent(Args&&... args)
@@ -96,6 +100,8 @@ namespace dae
         bool IsDescendant(GameObject* potentialDescendant) const;
 
         std::string m_Name;
+        Scene* m_pScene = nullptr;
+
         GameObject* m_Parent = nullptr;
         std::vector<GameObject*> m_Children; // Raw pointers to children
 

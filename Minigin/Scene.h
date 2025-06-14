@@ -20,6 +20,8 @@ namespace dae
 
         void Add(std::shared_ptr<GameObject> object);
         void Remove(std::shared_ptr<GameObject> object);
+        void Remove(GameObject* object);
+        void QueueRemove(GameObject* object);
         void RemoveAll();
 
         void Update(float deltaTime);
@@ -32,7 +34,12 @@ namespace dae
 
     private:
         std::string m_name;
-        std::vector<std::shared_ptr<GameObject>> m_objects{};
+
+    	std::vector<std::shared_ptr<GameObject>> m_objects{};
+
         static unsigned int m_idCounter;
+
+        std::vector<GameObject*> m_pendingRemoval;
+
     };
 }

@@ -17,6 +17,7 @@
 #include "ISoundService.h"   // For the type ISoundService
 #include "PlayerCommands.h" 
 #include "BoxCollisionComponent.h" 
+#include "PlayerJumpState.h"
 #include "RenderComponent.h"
 #include "Scene.h"                 
 #include "ResourceManager.h"
@@ -252,8 +253,9 @@ namespace dae
                     if (horizontalOverlap)
                     {
                         if (m_VerticalVelocity > 0.f)
-                        { // Player is falling
-// Player is coming from above AND their feet are now at or have slightly passed the tile's top surface.
+                        {
+                        	// Player is falling
+                        	// Player is coming from above AND their feet are now at or have slightly passed the tile's top surface.
                             if (playerAABB.GetTop() < otherAABB.GetTop() &&
                                 playerAABB.GetBottom() >= otherAABB.GetTop() - onTopEpsilon)
                             {
@@ -264,8 +266,9 @@ namespace dae
                             }
                         }
                         else
-                        { // m_VerticalVelocity <= 0.f (Player is stationary or moving up)
-                                         // Player's feet are very close to the tile's top surface, and player is generally above the tile.
+                        {
+                        	// m_VerticalVelocity <= 0.f (Player is stationary or moving up)
+                            // Player's feet are very close to the tile's top surface, and player is generally above the tile.
                             bool feetAreCorrectlyPositioned = (playerAABB.GetBottom() >= otherAABB.GetTop() - onTopEpsilon &&
                                 playerAABB.GetBottom() <= otherAABB.GetTop() + onTopEpsilon);
                             bool playerIsAboveTile = playerAABB.GetTop() < otherAABB.GetTop();
@@ -332,6 +335,12 @@ namespace dae
         m_Direction.x += x;
         m_Direction.x = std::clamp(m_Direction.x, -1.0f, 1.0f);
 
+        if (std::abs(x) > 0.01f)
+        {
+            m_FacingDirection.x = (x > 0) ? 1.0f : -1.0f;
+            m_FacingDirection.y = 0.0f;
+        }
+
 		auto owner = GetOwner();
         auto animationComponent = owner->GetComponent<dae::AnimatorComponent>();
 
@@ -379,59 +388,27 @@ namespace dae
 
     void PlayerCharacterComponent::Jump()
     {
-        if (m_IsOnGround)
+        EnsureStateMachine();
+        if (m_pStateMachine && m_IsOnGround)
         {
+            auto* currentState = m_pStateMachine->GetCurrentState();
+            if (!currentState || typeid(*currentState) != typeid(PlayerJumpState))
+            {
+                m_pStateMachine->ChangeState(std::make_unique<PlayerJumpState>());
+            }
+
             m_VerticalVelocity = -m_JumpStrength;
             m_IsOnGround = false;
-            if (m_pSoundService) { /* m_pSoundService->Play("JumpSoundID", 0.5f); */ }
         }
     }
 
     void PlayerCharacterComponent::ShootBubble()
     {
-        if (!m_pCurrentScene) return;
-
-		std::string playerTexturePath;
-
-		auto owner = GetOwner();
-
-        if (owner->GetName() == "Player1")
+        auto* currentState = m_pStateMachine->GetCurrentState();
+        if (!currentState || typeid(*currentState) != typeid(PlayerShootState))
         {
-            playerTexturePath = "PLayer/Bubby/";
+            m_pStateMachine->ChangeState(std::make_unique<PlayerShootState>());
         }
-        else
-        {
-            playerTexturePath = "PLayer/Bobby/";
-        }
-
-        // Create bubble GameObject
-        auto bubble = std::make_shared<GameObject>();
-        bubble->SetName("Bubble");
-
-        // Set bubble position to player's position
-        glm::vec2 pos = owner->GetTransform()->GetPosition();
-        bubble->GetTransform()->SetPosition(pos.x, pos.y);
-
-        // Add components: Texture, Render, Movement, Collision, etc.
-        auto tex = bubble->AddComponent<TextureComponent>();
-        tex->SetTexture(playerTexturePath + "Bubble_Anim.png");
-        tex->SetRenderSize(48, 48);
-        bubble->AddComponent<RenderComponent>();
-
-        auto bubblesize = bubble->GetComponent<TextureComponent>()->GetRenderDestinationSize();
-        bubble->AddComponent<dae::BoxCollisionComponent>(pos.x, pos.y,  bubblesize.x - 4, bubblesize.x - 4, dae::ColliderTag::BUBBLE);
-
-        auto bulletTexture = dae::ResourceManager::GetInstance().LoadTexture(playerTexturePath + "Bubble_Anim.png");
-        auto animator = bubble->AddComponent<dae::AnimatorComponent>();
-        animator->AddAnimationFromGrid("ShootBubble", bulletTexture, 48, 48, 3, 0.08f, true);
-        animator->Play("ShootBubble");
-        // Set bubble velocity based on player direction
-        //float bubbleSpeed = 200.0f;
-        //float direction = (m_Direction.x < 0) ? -1.0f : 1.0f;
-        // You may want to add a BubbleComponent to handle movement:
-        // bubble->AddComponent<BubbleComponent>(bubbleSpeed * dir);
-
-        m_pCurrentScene->Add(bubble);
     }
 
 
