@@ -262,8 +262,8 @@ void LevelParser::ParseZenChan(dae::Scene& scene, const std::string& lineData)
     animator->Play("Run");
 
     // Add the movement component - matching the pattern in ParsePlayer
-    auto movementComp = enemy->AddComponent<dae::ZenChanMovementComponent>(50.0f, 200.0f);
-    movementComp->SetPatrolRange(100.0f);
+    auto movementComp = enemy->AddComponent<dae::ZenChanMovementComponent>(50.0f, 981.0f);
+    movementComp->SetPatrolRange(960.0f);
     movementComp->SetMaxFallSpeed(300.0f);
 
     std::cout << "[LevelParser] Added ZenChanMovementComponent with gravity to " << enemy->GetName() << " at (" << worldX << "," << worldY << ")" << "\n";

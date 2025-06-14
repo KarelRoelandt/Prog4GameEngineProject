@@ -61,7 +61,7 @@ void SinglePlayerState::SetupPlayers(dae::Scene& scene)
     auto font = dae::ResourceManager::GetInstance().LoadFont("Fonts/Pixel_NES.otf", 24);
     
     auto textPlayer1 = std::make_shared<dae::GameObject>();
-    textPlayer1->AddComponent<dae::TextComponent>("Use WASD to move Bub, C to attack.", font);
+    textPlayer1->AddComponent<dae::TextComponent>("D-Pad + A Jump + B Shoot, L Leave", font);
     textPlayer1->GetTransform()->SetPosition(10.f, 60.f); // Example position
 	textPlayer1->AddComponent<dae::RenderComponent>();
     scene.Add(textPlayer1);

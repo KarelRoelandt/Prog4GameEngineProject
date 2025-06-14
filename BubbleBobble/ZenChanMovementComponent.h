@@ -14,6 +14,7 @@ namespace dae
     class ZenChanMovementComponent final : public BaseComponent
     {
     public:
+        // Constructor with owner parameter as required by your engine
         ZenChanMovementComponent(GameObject* owner, float movementSpeed = 50.0f, float gravity = 200.0f)
             : BaseComponent(owner),
             m_MovementSpeed(movementSpeed),
@@ -38,7 +39,7 @@ namespace dae
         void ApplyGravity(float deltaTime);
         void HandleCollisions();
         void UpdateMovement(float deltaTime);
-        void CheckGroundBeneath(); // New method to check if there's ground under ZenChan
+        void CheckGroundBeneath(); // Check if there's ground under ZenChan
 
         enum class MovementState
         {
@@ -52,12 +53,14 @@ namespace dae
         float m_Gravity{ 200.0f };
         float m_VerticalVelocity{ 0.0f };
         float m_MaxFallSpeed{ 300.0f };
-        float m_PatrolRange{ 100.0f };
+        float m_PatrolRange{ 960.0f };
 
         MovementState m_CurrentState{ MovementState::IDLE };
         float m_MovementDirection{ 1.0f }; // 1 for right, -1 for left
         float m_InitialX{ 0.0f };
         bool m_IsOnGround{ false };
+        bool m_IsGoingThroughGap{ false }; // New flag to track gap falling
+        bool m_InitialXSet{ false };
 
         // Raw pointers to components for efficiency
         TransformComponent* m_pTransform{ nullptr };

@@ -22,9 +22,17 @@ void PlayerRunState::Enter(dae::GameObject* owner)
     }
 }
 
-void PlayerRunState::Update(dae::GameObject* /*owner*/, float /*deltaTime*/)
+void PlayerRunState::Update(dae::GameObject* owner, float /*deltaTime*/)
 {
-    // Optionally: handle run logic
+    auto animator = owner->GetComponent<dae::AnimatorComponent>();
+    if (animator)
+    {
+        // If the current animation is "Shoot" and it just finished, play "Idle"
+        if (animator->GetCurrentAnimation() == "Shoot" && !animator->IsPlaying())
+        {
+            animator->Play("Run");
+        }
+    }
 }
 
 void PlayerRunState::Exit(dae::GameObject* /*owner*/)

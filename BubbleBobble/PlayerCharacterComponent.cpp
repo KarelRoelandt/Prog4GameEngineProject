@@ -301,7 +301,7 @@ namespace dae
         m_IsOnGround = landedThisFrame;
 
         AABB playerBoxForHardFloor = m_pPlayerCollider->GetBoundingBox();
-        float hardFloorY = 724.0f - playerBoxForHardFloor.height;
+        float hardFloorY = 726.0f - playerBoxForHardFloor.height;
 
         glm::vec2 finalPosition = m_pTransform->GetPosition();
         if (finalPosition.y > hardFloorY)
@@ -495,7 +495,7 @@ namespace dae
             inputManager.BindControllerCommand(GamepadButton::DPadLeft, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, -1.0f, 0.0f));
             inputManager.BindControllerCommand(GamepadButton::DPadRight, InputState::Released, std::make_shared<StopMoveCommand>(sharedThis, 1.0f, 0.0f));
             inputManager.BindControllerCommand(GamepadButton::ButtonA, InputState::Pressed, std::make_shared<JumpCommand>(sharedThis));
-            inputManager.BindControllerCommand(GamepadButton::ButtonX, InputState::Pressed, std::make_shared<ShootCommand>(sharedThis));
+            inputManager.BindControllerCommand(GamepadButton::ButtonB, InputState::Pressed, std::make_shared<ShootCommand>(sharedThis));
             inputManager.BindControllerCommand(GamepadButton::ButtonY, InputState::Pressed, std::make_shared<ScoreCommand>(sharedThis, 10));
         }
     }

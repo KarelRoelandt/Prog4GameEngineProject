@@ -17,9 +17,17 @@ void PlayerIdleState::Enter(dae::GameObject* owner)
 
 }
 
-void PlayerIdleState::Update(dae::GameObject* /*owner*/, float /*deltaTime*/)
+void PlayerIdleState::Update(dae::GameObject* owner, float /*deltaTime*/)
 {
-    // Optionally: handle run logic
+    auto animator = owner->GetComponent<dae::AnimatorComponent>();
+    if (animator)
+    {
+        // If the current animation is "Shoot" and it just finished, play "Idle"
+        if (animator->GetCurrentAnimation() == "Shoot" && !animator->IsPlaying())
+        {
+            animator->Play("Idle");
+        }
+    }
 }
 
 void PlayerIdleState::Exit(dae::GameObject* /*owner*/)
